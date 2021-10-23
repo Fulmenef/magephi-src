@@ -8,6 +8,8 @@ name: Release version
 
 on:
   push:
+    branches:
+      - 'feature/composer'
     tags:
       - '*.*.*'
 
@@ -15,8 +17,6 @@ jobs:
   build:
     name: Release
     runs-on: ubuntu-latest
-    env:
-      PHP_VERSION: 7.4
 
     steps:
       - uses: actions/checkout@v2
@@ -25,14 +25,32 @@ jobs:
       - name: Setup PHP with composer v2
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{env.PHP_VERSION}}
+          php-version: 7.4
           tools: composer:v2
 
-      - name: Validate composer.json and composer.lock
-        run: composer validate
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: 'Loads the keys used to deploy the PHAR archive'
+        run: echo "$GPG_SIGNING_KEY" | gpg --import --no-tty --batch --yes
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+
+      - name: "Configure Git"
+        run: |
+          git config --global user.email "axel.perroud@outlook.com"
+          git config --global user.name "Axel Perroud"
+          git config --global commit.gpgsign "true"
+          git config --global user.signingkey "$GPG_ID"
+        env:
+          GPG_ID: ${{ secrets.GPG_ID }}
 
       - name: Install dependencies
-        run: composer install --ignore-platform-reqs --prefer-dist --no-progress --no-dev --optimize-autoloader --classmap-authoritative
+        run: |
+          composer validate
+          composer install --ignore-platform-reqs --prefer-dist --no-progress --no-dev --optimize-autoloader --classmap-authoritative
 
       - name: Compilation
         run: |
@@ -40,19 +58,49 @@ jobs:
           make box
           ./build/magephi.phar list
 
-      - name: Prepare release
-        id: prepare_release
+      - name: "Checkout magephi-dist"
+        uses: "actions/checkout@v2"
+        with:
+          repository: fulmenef/magephi
+          ref: feature/composer
+          path: magephi-dist
+
+      - name: "cp PHAR"
+        run: cp build/magephi.phar magephi-dist/bin/magephi
+
+      - name: "Sign PHAR"
+        working-directory: magephi-dist
+        run: |
+          rm magephi.phar.asc
+          echo $GPG_PASSPHRASE | gpg --command-fd 0 --pinentry-mode loopback -u "$GPG_ID" --batch --detach-sign --armor --output magephi.phar.asc bin/magephi
+        env:
+          GPG_ID: ${{ secrets.GPG_ID }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: "Verify PHAR"
+        working-directory: magephi-dist
+        run: gpg --verify magephi.phar.asc bin/magephi
+
+      - name: Generate changelog
+        id: generate_changelog
         run: |
           old_tag=$(git tag --sort=-creatordate | head -n 2 | tail -n 1)
           changelog=$(git log $old_tag..${{ github.ref }} --format='* %s (%h)' --no-merges --reverse)
           changelog=${changelog//$'\n'/'%0A'}
           echo "::set-output name=changelog::${changelog}"
 
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          body: ${{ steps.prepare_release.outputs.changelog }}
-          files: ./build/magephi.phar
+      - name: "Commit PHAR"
+        working-directory: magephi-dist
+        run: |
+          git add bin/magephi magephi.phar.asc
+          git commit -S -m "Updated Magephi to commit ${{ github.event.after }}" -m "${{ steps.generate_changelog.outputs.changelog }}"
+          git push --quiet origin feature/composer
+
+#      - name: Create Release
+#        id: create_release
+#        uses: softprops/action-gh-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          body: ${{ steps.prepare_release.outputs.changelog }}
+#          files: ./build/magephi.phar
