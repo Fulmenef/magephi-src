@@ -1,5 +1,5 @@
 {
-    "name": "fulmenef/magephi",
+    "name": "fulmenef/magephi-src",
     "type": "application",
     "description": "PHP toolbox to manage Magento 2 project with a Docker Environment.",
     "license": "MIT",
