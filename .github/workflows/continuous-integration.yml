@@ -12,12 +12,20 @@ on:
       - '**'
       - '!master'
 
+env:
+  MAGENTO_DIRECTORY: ./tmp/magento
+
 jobs:
-  tests:
+  static:
     name: Static code analysis
     runs-on: ubuntu-latest
-    env:
-        PHP_VERSION: 7.4
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "7.4"
+          - "8.0"
 
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +33,7 @@ jobs:
       - name: Setup PHP with composer v2
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{env.PHP_VERSION}}
+          php-version: ${{ matrix.php-version }}
           tools: composer:v2
 
       - name: Install dependencies
@@ -36,3 +44,106 @@ jobs:
 
       - name: PHPStan
         run: make phpstan
+
+      - name: Security audit
+        run: |
+          repository="local-php-security-checker" && \
+          latest_version=$(curl --silent https://api.github.com/repos/fabpot/${repository}/releases/latest | jq -r ".tag_name") && \
+          destination="/usr/local/bin/${repository}" && \
+          wget -O "${destination}" "https://github.com/fabpot/${repository}/releases/download/${latest_version}/${repository}_${latest_version##v}_linux_amd64" && \
+          chmod +x "${destination}" && \
+          ${destination}
+
+  magento:
+    name: Test application on Magento
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        php-version:
+          - "7.4"
+          - "8.0"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup PHP with composer v2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+
+      - name: Install system requirements
+        run: |
+          wget -qO- "https://github.com/havoc-io/mutagen/releases/download/$MUTAGEN_VERSION/mutagen_linux_amd64_$MUTAGEN_VERSION.tar.gz" | sudo tar xvz -C "/usr/local/bin/"
+          mutagen daemon start
+          sudo ln -s "$PWD/bin/console" "/usr/local/bin/magephi"
+        env:
+          MUTAGEN_VERSION: v0.11.8
+
+      - name: Cache Magephi dependencies
+        id: cache-magephi
+        uses: actions/cache@v1
+        with:
+          path: vendor
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-magephi.outputs.cache-hit != 'true'
+        run: composer install --ignore-platform-reqs --prefer-dist --no-progress --no-dev --optimize-autoloader --classmap-authoritative
+
+      - name: Initialize Magento 2 project directory
+        run: mkdir -p ${{env.MAGENTO_DIRECTORY}}
+
+      - name: Cache Magento application
+        id: cache-magento
+        uses: actions/cache@v1
+        with:
+          path: ${{env.MAGENTO_DIRECTORY}}
+          key: ${{ runner.OS }}-build-${{ hashFiles('**/composer.lock') }}-magento-app
+
+      - name: Regenerate files after cache restore
+        if: steps.cache-magento.outputs.cache-hit == 'true'
+        run: |
+          rm -rf generated
+          composer dumpautoload
+        working-directory: ${{env.MAGENTO_DIRECTORY}}
+
+      - name: Create a Magento Open Source project
+        if: steps.cache-magento.outputs.cache-hit != 'true'
+        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition ${{env.MAGENTO_DIRECTORY}} --ignore-platform-reqs --no-install --no-dev
+        env:
+          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+
+      - name: Install the Docker environment through Composer
+        if: steps.cache-magento.outputs.cache-hit != 'true'
+        run: composer require emakinafr/docker-magento2 --dev --prefer-dist --ignore-platform-reqs --no-progress -d ${{env.MAGENTO_DIRECTORY}}
+        env:
+          COMPOSER_AUTH: ${{secrets.COMPOSER_AUTH}}
+          COMPOSER_MEMORY_LIMIT: 4G
+
+      - name: Reduces the size of the Magento directory
+        if: steps.cache-magento.outputs.cache-hit != 'true'
+        run: rm -rf update
+        working-directory: ${{env.MAGENTO_DIRECTORY}}
+
+      - name: Install Magento
+        run: sudo magephi install --no-interaction -v
+        working-directory: ${{env.MAGENTO_DIRECTORY}}
+
+      - name: Check status
+        run: magephi status
+        working-directory: ${{env.MAGENTO_DIRECTORY}}
+
+      - name: Try accessing the setup page
+        run: curl --insecure --location --resolve "www.magento.localhost:443:127.0.0.1" https://www.magento.localhost/setup/
+
+      - name: Stop containers
+        run: magephi stop
+        working-directory: ${{env.MAGENTO_DIRECTORY}}
+
+      - name: Uninstall project
+        run: yes | magephi uninstall -v
+        working-directory: ${{env.MAGENTO_DIRECTORY}}
