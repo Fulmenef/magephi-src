@@ -4,17 +4,12 @@ declare(strict_types=1);
 
 namespace Magephi\Command;
 
-use Humbug\SelfUpdate\Strategy\GithubStrategy;
-use Humbug\SelfUpdate\Updater;
-use Magephi\Application;
 use Magephi\Component\DockerCompose;
 use Magephi\Component\ProcessFactory;
 use Magephi\Entity\Environment\Manager;
 use Magephi\Entity\System;
 use Magephi\EventListener\CommandListener;
 use Magephi\Exception\EnvironmentException;
-use Magephi\Helper\UpdateHandler;
-use Magephi\Kernel;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -47,31 +42,6 @@ abstract class AbstractCommand extends Command
         $name = $name === 'default' ? $name : 'magephi:' . $name;
 
         return parent::setName($name);
-    }
-
-    /**
-     * Check if there's a new version available.
-     *
-     * @return null|string Return latest new version or null if nothing is available
-     */
-    public function checkNewVersionAvailable(): ?string
-    {
-        /** @var Application $app */
-        $app = $this->getApplication();
-        $version = $app->getVersion();
-
-        if (Kernel::getMode() === 'dev') {
-            return null;
-        }
-
-        $updater = new Updater(null, false);
-        $strategy = new GithubStrategy();
-        $strategy->setPackageName(UpdateHandler::PACKAGE_NAME);
-        $strategy->setPharName(UpdateHandler::FILE_NAME);
-        $strategy->setCurrentLocalVersion($version);
-        $updater->setStrategyObject($strategy);
-
-        return $updater->hasUpdate() ? $updater->getNewVersion() : null;
     }
 
     /**
@@ -125,23 +95,5 @@ abstract class AbstractCommand extends Command
 
         $this->interactive = new SymfonyStyle($input, $output);
         $this->manager->setOutput($this->interactive);
-
-        $update = $this->checkNewVersionAvailable();
-        if ($update !== null) {
-            $this->interactive->note(
-                "A new version is available, use the update command to update to version {$update}"
-            );
-            if ($this->interactive->confirm('Would you like to update ?', false)) {
-                $updateHandler = new UpdateHandler();
-                if ($updateHandler->handle()) {
-                    $this->interactive->success('Application updated, please relaunch your command');
-
-                    exit(self::SUCCESS); // Necessary to bypass Symfony post command check  and avoid errors
-                }
-                $this->interactive->warning(
-                    'Something went wrong, try again later or by using the update command'
-                );
-            }
-        }
     }
 }
