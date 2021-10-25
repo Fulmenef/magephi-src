@@ -8,8 +8,6 @@ name: Release version
 
 on:
   push:
-    branches:
-      - 'feature/composer'
     tags:
       - '*.*.*'
 
@@ -81,26 +79,15 @@ jobs:
         working-directory: magephi-dist
         run: gpg --verify magephi.phar.asc bin/magephi
 
-      - name: Generate changelog
-        id: generate_changelog
-        run: |
-          old_tag=$(git tag --sort=-creatordate | head -n 2 | tail -n 1)
-          changelog=$(git log $old_tag..${{ github.ref }} --format='* %s (%h)' --no-merges --reverse)
-          changelog=${changelog//$'\n'/'%0A'}
-          echo "::set-output name=changelog::${changelog}"
+      - name: "Generate changelog"
+        id: general_changelog
+        run: echo ::set-output name=changelog::$(git log ${{ github.event.before }}..${{ github.event.after }} --reverse --pretty='%H %s' | sed -e 's/^/https:\/\/github.com\/fulmenef\/magephi-src\/commit\//')
 
       - name: "Commit PHAR"
         working-directory: magephi-dist
         run: |
           git add bin/magephi magephi.phar.asc
-          git commit -S -m "Updated Magephi to commit ${{ github.event.after }}" -m "${{ steps.generate_changelog.outputs.changelog }}"
+          git commit -S -m "Magephi ${GITHUB_REF#refs/tags/}" -m "${{ steps.generate_changelog.outputs.changelog }}"
           git push --quiet origin feature/composer
-
-#      - name: Create Release
-#        id: create_release
-#        uses: softprops/action-gh-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          body: ${{ steps.prepare_release.outputs.changelog }}
-#          files: ./build/magephi.phar
+          git tag -s ${GITHUB_REF#refs/tags/} -m "${GITHUB_REF#refs/tags/}" && \
+          git push --quiet origin ${GITHUB_REF#refs/tags/}
