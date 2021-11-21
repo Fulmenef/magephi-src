@@ -42,7 +42,7 @@ class DockerCompose
 
         if (!\Symfony\Component\Process\Process::isTtySupported()) {
             throw new ProcessException(
-                'TTY is not supported, ensure you\'re running the application from the command line.'
+                "TTY is not supported, ensure you're running the application from the command line."
             );
         }
 
@@ -52,7 +52,7 @@ class DockerCompose
                 $commands[] = "--{$argument}={$value}";
             }
         }
-        $commands = array_merge($commands, ["$(docker compose ps --quiet {$container})", 'bash', '--login']);
+        $commands = array_merge($commands, ['$('], $this->getBinary(), ["ps --quiet {$container})", 'bash', '--login']);
 
         $this->processFactory->runInteractiveProcess(
             $commands,
@@ -70,7 +70,8 @@ class DockerCompose
      */
     public function isContainerUp(string $container): bool
     {
-        $command = "docker ps -q --no-trunc | grep $(docker-compose ps -q {$container})";
+        $command =
+            'docker ps -q --no-trunc | grep $(' . implode(' ', $this->getBinary()) . " ps -q {$container})";
         $commands = explode(' ', $command);
 
         try {
@@ -115,13 +116,13 @@ class DockerCompose
 
         $finalCommand =
             array_merge(
-                ['docker-compose', 'exec'],
+                $this->getBinary(),
+                ['exec'],
                 $arguments,
                 ['-T', $container, 'sh', '-c', sprintf('"%s"', escapeshellcmd($command))]
             );
 
         if ($createOnly) {
-            /** @var Process $process */
             $process = $this->processFactory->createProcess(
                 $finalCommand,
                 600,
@@ -152,7 +153,7 @@ class DockerCompose
         $commands = explode(' ', $command);
 
         return $this->processFactory->runProcess(
-            array_merge(['docker-compose'], $commands),
+            array_merge($this->getBinary(), $commands),
             600,
             $this->environment->getDockerRequiredVariables(),
             true
@@ -169,7 +170,7 @@ class DockerCompose
     public function restartContainer(string $container): bool
     {
         $process = $this->processFactory->runProcess(
-            ['docker-compose', 'restart', $container],
+            array_merge($this->getBinary(), ['restart', $container]),
             60,
             $this->environment->getDockerRequiredVariables()
         );
@@ -185,7 +186,7 @@ class DockerCompose
     public function list(): array
     {
         $process = $this->processFactory->runProcess(
-            ['docker-compose', 'ps'],
+            array_merge($this->getBinary(), ['ps']),
             60,
             $this->environment->getDockerRequiredVariables()
         );
@@ -214,5 +215,20 @@ class DockerCompose
         $this->environment = $environment;
 
         return $this;
+    }
+
+    /**
+     * Return binary depending the docker compose version.
+     *
+     * @return string[]
+     */
+    private function getBinary(): array
+    {
+        $process = $this->processFactory->runProcess(['docker-compose', 'version', '--short'], 10);
+        if (preg_match('/^v2/i', $process->getProcess()->getOutput()) !== 1) {
+            return ['docker-compose'];
+        }
+
+        return ['docker', 'compose'];
     }
 }
