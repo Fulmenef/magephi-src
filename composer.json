@@ -37,7 +37,11 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "captainhook/plugin-composer": true,
+            "symfony/flex": true
+        }
     },
     "autoload": {
         "psr-4": {
