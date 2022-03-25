@@ -6,16 +6,16 @@ namespace Magephi\Entity;
 
 class System
 {
-    /** @var array[] */
+    /** @var array<string, array{mandatory: bool, check: string, comment: ?string}> */
     private array $binaries = [
-        'Docker'            => ['mandatory' => true, 'check' => 'docker'],
-        'Docker-Compose'    => ['mandatory' => true, 'check' => 'docker-compose'],
+        'Docker'            => ['mandatory' => true, 'check' => 'docker', 'comment' => null],
+        'Docker-Compose'    => ['mandatory' => true, 'check' => 'docker-compose', 'comment' => null],
         'Mutagen'           => [
             'mandatory' => true,
             'check'     => 'mutagen',
             'comment'   => '<fg=yellow>https://mutagen.io/</>',
         ],
-        'Yarn'              => ['mandatory' => false, 'check' => 'yarn'],
+        'Yarn'              => ['mandatory' => false, 'check' => 'yarn', 'comment' => null],
         'Magento Cloud CLI' => [
             'mandatory' => false,
             'check'     => 'magento-cloud',
@@ -28,16 +28,19 @@ class System
         ],
     ];
 
-    /** @var array[] */
+    /** @var array<string, array{mandatory: bool, check: string, comment: ?string}> */
     private array $services = [
-        'Docker'  => ['mandatory' => true, 'check' => 'docker info > /dev/null 2>&1'],
-        'Mutagen' => ['mandatory' => true, 'check' => 'pgrep -f "mutagen"'],
+        'Docker'  => ['mandatory' => true, 'check' => 'docker info > /dev/null 2>&1', 'comment' => null],
+        'Mutagen' => ['mandatory' => true, 'check' => 'pgrep -f "mutagen"', 'comment' => null],
     ];
 
     /**
      * Get all prerequisites.
      *
-     * @return array[]
+     * @return array{
+     *      binaries: array<string, array{mandatory: bool, status: bool, comment: ?string}>,
+     *      services: array<string, array{mandatory: bool, status: bool, comment: ?string}>
+     *  }
      */
     public function getAllPrerequisites(): array
     {
@@ -50,11 +53,21 @@ class System
     /**
      * Return the mandatory prerequisite no matter if it's a binary or service.
      *
-     * @return array[]
+     * @return array{
+     *      binaries: array<string, array{mandatory: bool, status: bool, comment: ?string}>,
+     *      services: array<string, array{mandatory: bool, status: bool, comment: ?string}>
+     *  }
      */
     public function getMandatoryPrerequisites(): array
     {
         $allPrerequisites = $this->getAllPrerequisites();
+
+        /**
+         * @var array{
+         *      binaries: array<string, array{mandatory: bool, status: bool, comment: ?string}>,
+         *      services: array<string, array{mandatory: bool, status: bool, comment: ?string}>
+         *  } $systemPrerequisites
+         */
         $systemPrerequisites = [];
         foreach ($allPrerequisites as $type => $prerequisites) {
             $filtered = array_filter(
@@ -74,11 +87,21 @@ class System
     /**
      * Return the optional prerequisite no matter if it's a binary or service.
      *
-     * @return array[]
+     * @return array{
+     *      binaries: array<string, array{mandatory: bool, status: bool, comment: ?string}>,
+     *      services: array<string, array{mandatory: bool, status: bool, comment: ?string}>
+     *  }
      */
     public function getOptionalPrerequisites(): array
     {
         $allPrerequisites = $this->getAllPrerequisites();
+
+        /**
+         * @var array{
+         *      binaries: array<string, array{mandatory: bool, status: bool, comment: ?string}>,
+         *      services: array<string, array{mandatory: bool, status: bool, comment: ?string}>
+         *  } $systemPrerequisites
+         */
         $systemPrerequisites = [];
         foreach ($allPrerequisites as $type => $prerequisites) {
             $filtered = array_filter(
@@ -99,7 +122,7 @@ class System
      * Return the binary prerequisites, replace the `check` entry by the `status` determined by the return value of
      * the check.
      *
-     * @return array[]
+     * @return array<string, array{mandatory: bool, status: bool, comment: ?string}>
      */
     public function getBinaryPrerequisites(): array
     {
@@ -115,7 +138,7 @@ class System
      * Return the service prerequisites, replace the `check` entry by the `status` determined by the return value of
      * the check.
      *
-     * @return array[]
+     * @return array<string, array{mandatory: bool, status: bool, comment: ?string}>
      */
     public function getServicesPrerequisites(): array
     {
@@ -146,9 +169,9 @@ class System
     }
 
     /**
-     * @param string[] $binary
+     * @param array{mandatory: bool, check: string, comment: ?string} $binary
      *
-     * @return array<bool|string>
+     * @return array{mandatory: bool, status: bool, comment: ?string}
      */
     protected function getBinaryStatus(array $binary): array
     {
@@ -159,9 +182,9 @@ class System
     }
 
     /**
-     * @param string[] $service
+     * @param array{mandatory: bool, check: string, comment: ?string} $service
      *
-     * @return array<bool|string>
+     * @return array{mandatory: bool, status: bool, comment: ?string}
      */
     protected function getServiceStatus(array $service): array
     {

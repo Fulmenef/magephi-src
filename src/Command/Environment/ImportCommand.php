@@ -20,16 +20,13 @@ class ImportCommand extends AbstractEnvironmentCommand
 {
     protected string $command = 'import';
 
-    protected Database $database;
-
     public function __construct(
         ProcessFactory $processFactory,
         DockerCompose $dockerCompose,
         Manager $manager,
-        Database $database
+        protected Database $database
     ) {
         parent::__construct($processFactory, $dockerCompose, $manager);
-        $this->database = $database;
     }
 
     protected function configure(): void
@@ -59,8 +56,6 @@ class ImportCommand extends AbstractEnvironmentCommand
      * @param mixed $string
      *
      * @throws InvalidTypeException
-     *
-     * @return string
      */
     private function convertToString($string): string
     {

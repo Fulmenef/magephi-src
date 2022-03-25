@@ -10,8 +10,6 @@ use Magephi\Component\ProcessFactory;
 use Magephi\Entity\Environment\Manager;
 use Magephi\Entity\System;
 use Magephi\Exception\ComposerException;
-use Magephi\Helper\Database;
-use Nadar\PhpComposerReader\ComposerReader;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -25,16 +23,13 @@ class InstallCommand extends AbstractEnvironmentCommand
 
     protected string $command = 'install';
 
-    private System $prerequisite;
-
     public function __construct(
         ProcessFactory $processFactory,
         DockerCompose $dockerCompose,
         Manager $manager,
-        System $system
+        private System $system
     ) {
         parent::__construct($processFactory, $dockerCompose, $manager);
-        $this->prerequisite = $system;
     }
 
     public function getPrerequisites(): array
@@ -55,15 +50,15 @@ class InstallCommand extends AbstractEnvironmentCommand
         try {
             $this->checkPrerequisites();
 
-            $composer = $this->installDependencies();
+            $this->installDependencies();
 
             $this->interactive->newLine();
 
-            $this->manager->install(['composer' => $composer]);
+            $this->manager->install();
 
             $imported = $this->importDatabase();
         } catch (Exception $e) {
-            if ($e->getMessage() !== '') {
+            if ('' !== $e->getMessage()) {
                 $this->interactive->error($e->getMessage());
             }
 
@@ -105,7 +100,7 @@ class InstallCommand extends AbstractEnvironmentCommand
         // Run environment checks.
         $this->interactive->section('Environment check');
 
-        $prerequisites = $this->prerequisite->getBinaryPrerequisites();
+        $prerequisites = $this->system->getBinaryPrerequisites();
         foreach ($prerequisites as $component => $info) {
             $this->check(
                 $component . ' is installed.',
@@ -117,7 +112,7 @@ class InstallCommand extends AbstractEnvironmentCommand
             );
         }
 
-        $prerequisites = $this->prerequisite->getServicesPrerequisites();
+        $prerequisites = $this->system->getServicesPrerequisites();
         foreach ($prerequisites as $component => $info) {
             $this->check(
                 $component . ' is running.',
@@ -130,27 +125,29 @@ class InstallCommand extends AbstractEnvironmentCommand
         }
     }
 
-    /**
-     * @return ComposerReader
-     */
-    protected function installDependencies(): ComposerReader
+    protected function installDependencies(): void
     {
         $this->interactive->section('Installing dependencies');
-        /** @var ComposerReader $composer */
-        $composer = new ComposerReader('composer.json');
-        if (!$composer->canRead()) {
-            throw new ComposerException('Unable to read json.');
-        }
-        $composer->runCommand('install --ignore-platform-reqs -o');
 
-        return $composer;
+        if (!file_exists('composer.json')) {
+            throw new ComposerException("Composer.json doesn't exist. Create the project first.");
+        }
+
+        $this->processFactory->runInteractiveProcess(
+            [
+                'composer',
+                'install',
+                '--ignore-platform-reqs',
+                '--optimize-autoloader',
+            ],
+            900,
+            ['COMPOSER_MEMORY_LIMIT' => '2G']
+        );
     }
 
     /**
      * Import database from a file on the project. The file must be at the root or in a direct subdirectory.
      * TODO: Import database from Magento Cloud CLI if available.
-     *
-     * @return bool
      */
     protected function importDatabase(): bool
     {
@@ -172,9 +169,10 @@ class InstallCommand extends AbstractEnvironmentCommand
                         $file = null;
                     }
                 }
-                if ($file !== null) {
+                if (\is_string($file)) {
                     return $this->manager->importDatabase($file);
                 }
+                $this->interactive->error(sprintf('Filename must be a string, %s given', \gettype($file)));
             } else {
                 $this->interactive->text('No compatible file found.');
             }

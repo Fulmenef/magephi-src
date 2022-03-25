@@ -51,11 +51,17 @@ class InstallCommand extends AbstractMagentoCommand
             $environment->getDatabase(),
             $environment->getEnvData('mysql_user'),
             $environment->getEnvData('mysql_password'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What must be the backend frontname ?', 'admin'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What is the admin firstname ?', 'admin'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What is the admin lastname ?', 'admin'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What is the admin email ?', 'admin@admin.com'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What is the admin username ?', 'admin'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask(
                 'What is the admin password ?',
                 '4dM7NPwd',
@@ -70,7 +76,7 @@ class InstallCommand extends AbstractMagentoCommand
                             'The password must be at least 7 characters.'
                         );
                     }
-                    if (\strlen(preg_replace('![^A-Z]+!', '', $answer)) < 1) {
+                    if (preg_replace('![^A-Z]+!', '', $answer) === '') {
                         throw new \RuntimeException(
                             'The password must include uppercase characters.'
                         );
@@ -84,10 +90,14 @@ class InstallCommand extends AbstractMagentoCommand
                     return $answer;
                 }
             ),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What is the project default language ?', 'en_US'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What is the project default currency ?', 'USD'),
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What is the project default timezone ?', 'America/Chicago'),
             $this->interactive->confirm('Do you want to use url rewrites ?', true) ? 1 : 0,
+            // @phpstan-ignore-next-line
             $this->interactive->ask('What search engine do you want ?', 'elasticsearch7'),
             'elasticsearch',
             9200
@@ -126,7 +136,7 @@ class InstallCommand extends AbstractMagentoCommand
                     $progressBar->finish();
                 }
             }
-        } catch (EnvironmentException | ProcessException $e) {
+        } catch (EnvironmentException|ProcessException $e) {
             $this->interactive->error($e->getMessage());
 
             return self::FAILURE;

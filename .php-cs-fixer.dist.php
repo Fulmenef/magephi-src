@@ -1,5 +1,9 @@
 <?php
 
+$finder = (new PhpCsFixer\Finder())
+    ->in([__DIR__ . '/src'])
+    ->append([__FILE__]);
+
 return (new PhpCsFixer\Config())
     ->setRules(
         [
@@ -17,9 +21,5 @@ return (new PhpCsFixer\Config())
         ]
     )
     ->setRiskyAllowed(true)
-    ->setFinder(
-        PhpCsFixer\Finder::create()
-            ->in([__DIR__ . '/src'])
-            ->append([__FILE__])
-    )
+    ->setFinder($finder)
     ->setCacheFile(__DIR__ . '/var/.php_cs.cache');

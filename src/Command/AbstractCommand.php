@@ -20,26 +20,20 @@ abstract class AbstractCommand extends Command
 {
     protected SymfonyStyle $interactive;
 
-    protected ProcessFactory $processFactory;
-
-    protected DockerCompose $dockerCompose;
-
-    protected Manager $manager;
-
-    public function __construct(ProcessFactory $processFactory, DockerCompose $dockerCompose, Manager $manager)
-    {
-        $this->processFactory = $processFactory;
-        $this->dockerCompose = $dockerCompose;
-        $this->manager = $manager;
+    public function __construct(
+        protected ProcessFactory $processFactory,
+        protected DockerCompose $dockerCompose,
+        protected Manager $manager
+    ) {
         parent::__construct();
     }
 
     /**
      * {@inheritDoc}
      */
-    public function setName(string $name)
+    public function setName(string $name): static
     {
-        $name = $name === 'default' ? $name : 'magephi:' . $name;
+        $name = 'default' === $name ? $name : 'magephi:' . $name;
 
         return parent::setName($name);
     }
@@ -67,9 +61,9 @@ abstract class AbstractCommand extends Command
 
     /**
      * Contain system prerequisite for the command. Must always follow the same structure.
-     * Must contains the exact name of prerequisites defined in the System class.
+     * Must contain the exact name of prerequisites defined in the System class.
      *
-     * @return array[]
+     * @return array<string, array<string>>
      *
      * @see CommandListener Listener using the variable to check the prerequisites
      * @see System Class containing known prerequisites.

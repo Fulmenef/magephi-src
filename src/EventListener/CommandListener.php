@@ -14,30 +14,25 @@ use Symfony\Component\Console\Event\ConsoleCommandEvent;
 
 class CommandListener
 {
-    private System $system;
-
-    private Manager $manager;
-
-    public function __construct(System $system, Manager $manager)
+    public function __construct(private System $system, private Manager $manager)
     {
-        $this->system = $system;
-        $this->manager = $manager;
     }
 
     /**
      * Check if the prerequisites for the Magephi command are filled.
-     *
-     * @param ConsoleCommandEvent $event
-     *
-     * @return int
      */
     public function onConsoleCommand(ConsoleCommandEvent $event): int
     {
         // gets the command to be executed
         $command = $event->getCommand();
+
         /** @var AbstractCommand $command */
         if ($command instanceof AbstractCommand) {
-            if (!\in_array($command->getName(), ['default', 'magephi:environment:create', 'magephi:update', 'magephi:environment:install'], true)) {
+            if (!\in_array(
+                $command->getName(),
+                ['default', 'magephi:environment:create', 'magephi:update', 'magephi:environment:install'],
+                true
+            )) {
                 if (!$this->manager->hasEnvironment()) {
                     throw new EnvironmentException(
                         'This command cannot be used here, install the environment with the `install` command or go inside a configured project directory.'
@@ -89,9 +84,8 @@ class CommandListener
      * Check if the prerequisites given for the command correspond to prerequisites defined in the System class.
      * Throw an error if it doesn't.
      *
-     * @param string[] $command
-     * @param array[]  $system
-     * @param string   $type
+     * @param array<string>                                                         $command
+     * @param array<string, array{mandatory: bool, status: bool, comment: ?string}> $system
      *
      * @throws ArgumentCountError
      */
@@ -99,11 +93,7 @@ class CommandListener
     {
         if (!empty($diff = array_diff($command, array_keys($system)))) {
             throw new ArgumentCountError(
-                sprintf(
-                    'Undefined %s prerequisite(s) specified: %s',
-                    $type,
-                    implode(',', $diff)
-                )
+                sprintf('Undefined %s prerequisite(s) specified: %s', $type, implode(',', $diff))
             );
         }
     }

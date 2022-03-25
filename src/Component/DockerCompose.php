@@ -13,16 +13,10 @@ use Psr\Log\LoggerInterface;
 
 class DockerCompose
 {
-    private ProcessFactory $processFactory;
-
     private EnvironmentInterface $environment;
 
-    private LoggerInterface $logger;
-
-    public function __construct(ProcessFactory $processFactory, LoggerInterface $logger)
+    public function __construct(private ProcessFactory $processFactory, private LoggerInterface $logger)
     {
-        $this->processFactory = $processFactory;
-        $this->logger = $logger;
     }
 
     /**
@@ -41,9 +35,7 @@ class DockerCompose
         }
 
         if (!\Symfony\Component\Process\Process::isTtySupported()) {
-            throw new ProcessException(
-                "TTY is not supported, ensure you're running the application from the command line."
-            );
+            throw new ProcessException("TTY is not supported, ensure you're running the application from the command line.");
         }
 
         $commands = ['docker', 'exec', '--interactive', '--tty'];
@@ -63,10 +55,6 @@ class DockerCompose
 
     /**
      * Test if the given container is up or not.
-     *
-     * @param string $container
-     *
-     * @return bool
      */
     public function isContainerUp(string $container): bool
     {
@@ -94,11 +82,7 @@ class DockerCompose
     /**
      * Execute a command in the specified container.
      *
-     * @param string $container
-     * @param string $command
-     * @param bool   $createOnly If provided, return an instance of Process without execution
-     *
-     * @return Process
+     * @param bool $createOnly If provided, return an instance of Process without execution
      */
     public function executeContainerCommand(
         string $container,
@@ -110,7 +94,7 @@ class DockerCompose
         }
 
         $arguments = [];
-        if ($container === 'php') {
+        if ('php' === $container) {
             $arguments = ['-u', PhpCommand::ARGUMENT_WWW_DATA];
         }
 
@@ -143,10 +127,6 @@ class DockerCompose
 
     /**
      * Execute a docker-compose command like `ps` or `logs`.
-     *
-     * @param string $command
-     *
-     * @return Process
      */
     public function executeGlobalCommand(string $command): Process
     {
@@ -162,10 +142,6 @@ class DockerCompose
 
     /**
      * Restart the given container.
-     *
-     * @param string $container
-     *
-     * @return bool
      */
     public function restartContainer(string $container): bool
     {
@@ -206,8 +182,6 @@ class DockerCompose
     }
 
     /**
-     * @param EnvironmentInterface $environment
-     *
      * @return DockerCompose
      */
     public function setEnvironment(EnvironmentInterface $environment): self
@@ -225,7 +199,7 @@ class DockerCompose
     private function getBinary(): array
     {
         $process = $this->processFactory->runProcess(['docker-compose', 'version', '--short'], 10);
-        if (preg_match('/^v2/i', $process->getProcess()->getOutput()) !== 1) {
+        if (1 !== preg_match('/^v2/i', $process->getProcess()->getOutput())) {
             return ['docker-compose'];
         }
 

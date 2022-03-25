@@ -19,16 +19,13 @@ class StatusCommand extends AbstractEnvironmentCommand
 {
     protected string $command = 'status';
 
-    private Mutagen $mutagen;
-
     public function __construct(
         ProcessFactory $processFactory,
         DockerCompose $dockerCompose,
         Manager $manager,
-        Mutagen $mutagen
+        private Mutagen $mutagen
     ) {
         parent::__construct($processFactory, $dockerCompose, $manager);
-        $this->mutagen = $mutagen;
     }
 
     protected function configure(): void

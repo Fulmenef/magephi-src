@@ -15,3 +15,16 @@ parameters:
 	ignoreErrors:
 		# False positive from the php documentation
 		- "#Offset 'extension' does not exist on array#"
+		-
+			message: '#PHPDoc tag @var for variable \$env has no value type specified in iterable type array#'
+			path: src/Entity/Environment/Emakina.php
+		-
+			message: '#Method Magephi\\Component\\Json::getContent\(\) return type has no value type specified in iterable type array#'
+			path: src/Component/Json.php
+		-
+			message: '#Method Magephi\\Component\\Json::getContent\(\) should return array but returns mixed#'
+			path: src/Component/Json.php
+		-
+			message: '#Method Magephi\\Component\\Json::putContent\(\) has parameter \$content with no value type specified in iterable type array#'
+			path: src/Component/Json.php
+

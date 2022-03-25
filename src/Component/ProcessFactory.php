@@ -25,11 +25,8 @@ class ProcessFactory
      * Create an instance of Process with the given command and return it.
      *
      * @param string[]      $command
-     * @param null|float    $timeout
      * @param null|string[] $env     Environment variables
      * @param bool          $shell   Specify if the process should execute the command in shell directly
-     *
-     * @return Process
      */
     public function createProcess(
         array $command,
@@ -49,11 +46,8 @@ class ProcessFactory
      * Run a process directly without any customization.
      *
      * @param string[] $command
-     * @param float    $timeout
      * @param string[] $env     Environment variables
      * @param bool     $shell   Should the process be executed as shell command directly
-     *
-     * @return Process
      */
     public function runProcess(
         array $command,
@@ -74,13 +68,9 @@ class ProcessFactory
      * Create and start a process with an associated progress bar.
      *
      * @param string[] $command
-     * @param float    $timeout
      * @param callable $progressFunction Used to update the progress bar. Return true to advance by 1, return an
      *                                   int to advance the bar with the number of steps.
-     * @param null|int $maxSteps
      * @param bool     $shell            Specify if the process should execute the command in shell directly
-     *
-     * @return Process
      */
     public function runProcessWithProgressBar(
         array $command,
@@ -104,11 +94,7 @@ class ProcessFactory
      * Run a process with output.
      *
      * @param string[]      $command
-     * @param null|float    $timeout
      * @param null|string[] $env     Environment variables
-     * @param bool          $shell
-     *
-     * @return Process
      */
     public function runProcessWithOutput(
         array $command,
@@ -123,10 +109,7 @@ class ProcessFactory
      * Run a process and provide an interactive interface.
      *
      * @param string[]      $command
-     * @param null|float    $timeout
      * @param null|string[] $env     Environment variables
-     *
-     * @return Process
      */
     public function runInteractiveProcess(array $command, ?float $timeout = null, array $env = null): Process
     {
@@ -137,12 +120,7 @@ class ProcessFactory
      * Run a command with its output.
      *
      * @param string[]      $command
-     * @param null|float    $timeout
      * @param null|string[] $env
-     * @param bool          $shell
-     * @param bool          $tty
-     *
-     * @return Process
      */
     private function runOutputProcess(
         array $command,
@@ -156,7 +134,7 @@ class ProcessFactory
         $process->getProcess()->setTty($tty ? SymfonyProcess::isTtySupported() : $tty);
         $process->run(
             static function (string $type, string $buffer): void {
-                echo SymfonyProcess::ERR === $type ? "ERR > {$buffer}" : $buffer;
+                echo $buffer;
             }
         );
 
