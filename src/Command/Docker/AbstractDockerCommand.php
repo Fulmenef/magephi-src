@@ -33,7 +33,7 @@ abstract class AbstractDockerCommand extends AbstractCommand
     {
         try {
             $this->manager->openTerminal($this->service, $this->arguments);
-        } catch (EnvironmentException | ProcessException $e) {
+        } catch (EnvironmentException|ProcessException $e) {
             $this->interactive->error($e->getMessage());
 
             return self::FAILURE;

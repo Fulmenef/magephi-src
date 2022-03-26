@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Magephi\Entity\Environment;
 
+use InvalidArgumentException;
 use Magephi\Component\DockerHub;
 use Magephi\Component\Mutagen;
 use Magephi\Component\Process;
+use Magephi\Component\ProcessFactory;
 use Magephi\Component\Yaml;
 use Magephi\Exception\DockerHubException;
 use Magephi\Exception\EnvironmentException;
 use Magephi\Exception\ProcessException;
 use Magephi\Helper\Make;
 use Magephi\Kernel;
-use Nadar\PhpComposerReader\ComposerReader;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -52,21 +53,15 @@ class Emakina implements EnvironmentInterface
 
     private SymfonyStyle $output;
 
-    private Make $make;
-
-    private Mutagen $mutagen;
-
-    private Filesystem $filesystem;
-
-    private DockerHub $dockerHub;
-
-    public function __construct(Make $make, Mutagen $mutagen, Filesystem $filesystem, DockerHub $dockerHub, Yaml $yaml)
-    {
-        $this->make = $make;
+    public function __construct(
+        private Make $make,
+        private Mutagen $mutagen,
+        private Filesystem $filesystem,
+        private DockerHub $dockerHub,
+        Yaml $yaml,
+        private ProcessFactory $processFactory
+    ) {
         $make->setEnvironment($this);
-        $this->mutagen = $mutagen;
-        $this->filesystem = $filesystem;
-        $this->dockerHub = $dockerHub;
 
         /** @var string $current */
         $current = posix_getcwd();
@@ -157,8 +152,6 @@ class Emakina implements EnvironmentInterface
      *
      * @throws FileNotFoundException
      * @throws EnvironmentException
-     *
-     * @return string
      */
     public function getLocalEnvData(): string
     {
@@ -218,8 +211,6 @@ class Emakina implements EnvironmentInterface
 
     /**
      * Return the content of the docker-compose.yml.
-     *
-     * @return string
      */
     public function getDockerComposeContent(): string
     {
@@ -228,7 +219,7 @@ class Emakina implements EnvironmentInterface
         }
 
         $content = file_get_contents($this->dockerComposeFile ?: '');
-        if ($content === false) {
+        if (false === $content) {
             throw new FileNotFoundException('docker-compose.yml is not found.');
         }
         $this->dockerComposeContent = $content;
@@ -238,7 +229,7 @@ class Emakina implements EnvironmentInterface
 
     public function isVariableUsed(string $variable): bool
     {
-        return stripos($this->getDockerComposeContent(), '${' . $variable . '}') !== false;
+        return false !== stripos($this->getDockerComposeContent(), '${' . $variable . '}');
     }
 
     /**
@@ -267,8 +258,6 @@ class Emakina implements EnvironmentInterface
 
     /**
      * Return true if vendor/emakinafr/docker-magento2/docker-compose.yml exists.
-     *
-     * @return bool
      */
     public function hasComposeFile(): bool
     {
@@ -299,10 +288,8 @@ class Emakina implements EnvironmentInterface
         $process = $this->make->build();
 
         if (!$process->getProcess()->isSuccessful()) {
-            if ($process->getExitCode() === Process::CODE_TIMEOUT) {
-                throw new ProcessException(
-                    'Build timeout, use the option --no-timeout or run directly `make build` to build the environment.'
-                );
+            if (Process::CODE_TIMEOUT === $process->getExitCode()) {
+                throw new ProcessException('Build timeout, use the option --no-timeout or run directly `make build` to build the environment.');
             }
 
             throw new EnvironmentException($process->getProcess()->getErrorOutput());
@@ -317,21 +304,19 @@ class Emakina implements EnvironmentInterface
     public function start(bool $install = false): bool
     {
         $process = $this->make->start($install);
-        if (!$process->getProcess()->isSuccessful() && $process->getExitCode() !== Process::CODE_TIMEOUT) {
+        if (!$process->getProcess()->isSuccessful() && Process::CODE_TIMEOUT !== $process->getExitCode()) {
             // TODO Encapsulate error ?
             throw new EnvironmentException($process->getProcess()->getErrorOutput());
         }
 
-        if ($process->getExitCode() === Process::CODE_TIMEOUT) {
+        if (Process::CODE_TIMEOUT === $process->getExitCode()) {
             $this->make->startMutagen();
             $this->output->newLine();
             $this->output->text('Containers are up.');
             $this->output->section('File synchronization');
             $synced = $this->mutagen->monitorUntilSynced();
             if (!$synced) {
-                throw new EnvironmentException(
-                    'Something happened during the sync, check the situation with <fg=yellow>mutagen monitor</>.'
-                );
+                throw new EnvironmentException('Something happened during the sync, check the situation with <fg=yellow>mutagen monitor</>.');
             }
         }
 
@@ -354,10 +339,13 @@ class Emakina implements EnvironmentInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @throws DockerHubException
+     * @throws TransportExceptionInterface
      */
     public function install(array $data = []): bool
     {
-        $this->prepareEnvironment($data['composer']);
+        $this->prepareEnvironment();
 
         $this->output->section('Building containers');
 
@@ -382,9 +370,6 @@ class Emakina implements EnvironmentInterface
         return true;
     }
 
-    /**
-     * @return string
-     */
     public function getLocalEnv(): string
     {
         return $this->localEnv;
@@ -430,22 +415,16 @@ class Emakina implements EnvironmentInterface
 
     /**
      * Get content of the nginx configuration file.
-     *
-     * @return string
      */
     private function getNginxConf(): string
     {
         if (!\is_string($this->nginxConf)) {
-            throw new EnvironmentException(
-                'nginx.conf does not exist. Ensure emakinafr/docker-magento2 is present in dependencies.'
-            );
+            throw new EnvironmentException('nginx.conf does not exist. Ensure emakinafr/docker-magento2 is present in dependencies.');
         }
 
         $content = file_get_contents($this->nginxConf);
         if (!\is_string($content)) {
-            throw new EnvironmentException(
-                "Something went wrong while reading {$this->nginxConf}, ensure the file is present."
-            );
+            throw new EnvironmentException("Something went wrong while reading {$this->nginxConf}, ensure the file is present.");
         }
 
         return $content;
@@ -453,10 +432,6 @@ class Emakina implements EnvironmentInterface
 
     /**
      * Get variable from the .env file.
-     *
-     * @param string $variable
-     *
-     * @return string
      */
     private function getVariableValue(string $variable): string
     {
@@ -475,18 +450,16 @@ class Emakina implements EnvironmentInterface
     /**
      * Setup installation configuration.
      *
-     * @param ComposerReader $composer
-     *
      * @throws DockerHubException
      * @throws TransportExceptionInterface
      */
-    private function prepareEnvironment(ComposerReader $composer): void
+    private function prepareEnvironment(): void
     {
         $this->output->section('Configuring docker environment');
 
         if (!$this->filesystem->exists($this->distEnv)) {
             $this->output->section('Creating docker local directory');
-            $composer->runCommand('exec docker-local-install');
+            $this->processFactory->runProcess(['composer', 'exec', 'docker-local-install']);
         }
 
         $configureEnv = !$this->filesystem->exists($this->localEnv)
@@ -512,9 +485,7 @@ class Emakina implements EnvironmentInterface
     private function prepareDockerEnv(): void
     {
         if (!$this->filesystem->exists($this->distEnv)) {
-            throw new EnvironmentException(
-                'env.dist does not exist. Ensure emakinafr/docker-magento2 is present in dependencies.'
-            );
+            throw new EnvironmentException('env.dist does not exist. Ensure emakinafr/docker-magento2 is present in dependencies.');
         }
         $this->filesystem->copy($this->distEnv, $this->localEnv, true);
 
@@ -525,7 +496,14 @@ class Emakina implements EnvironmentInterface
         $this->elasticsearchImage = $this->selectImage('magento2-elasticsearch', 'DOCKER_ELASTICSEARCH_IMAGE');
 
         if ($this->isVariableUsed('DOCKER_REDIS_IMAGE')) {
-            $this->redisImage = $this->output->ask('Type the image to use for Redis', $this->getVariableValue('DOCKER_REDIS_IMAGE'));
+            $redis =
+                $this->output->ask('Type the image to use for Redis', $this->getVariableValue('DOCKER_REDIS_IMAGE'));
+
+            if (!\is_string($redis)) {
+                throw new InvalidArgumentException(sprintf('The type should be a string, %s given', \gettype($redis)));
+            }
+
+            $this->redisImage = $redis;
             $this->setVariableValue('DOCKER_REDIS_IMAGE', $this->redisImage);
         }
 
@@ -542,13 +520,8 @@ class Emakina implements EnvironmentInterface
     /**
      * Retrieve tags available for the given image and configure the variable accordingly to the user's choice.
      *
-     * @param string $imageName
-     * @param string $variable
-     *
      * @throws DockerHubException
      * @throws TransportExceptionInterface
-     *
-     * @return string
      */
     private function selectImage(string $imageName, string $variable): string
     {
@@ -559,13 +532,17 @@ class Emakina implements EnvironmentInterface
                 $availableTags[$i] = $availableTags[$i - 1];
             }
             unset($availableTags[0]); // Remove duplicate of first choice
-            $image = (string) $this->output->choice(
+            $image = $this->output->choice(
                 "Select the image you want to use for {$imageName} :",
                 $availableTags,
                 $availableTags[1]
             );
         } else {
             $image = $availableTags[0];
+        }
+
+        if (!\is_string($image)) {
+            throw new InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($image)));
         }
 
         $this->setVariableValue($variable, $image);
@@ -575,15 +552,12 @@ class Emakina implements EnvironmentInterface
 
     /**
      * Update local .env file with the variable value.
-     *
-     * @param string $variable
-     * @param string $image
      */
     private function setVariableValue(string $variable, string $image): void
     {
         $value = "{$variable}={$image}";
         $replacement = preg_replace("/({$variable}=\\S*)/i", $value, $this->getLocalEnvData());
-        if ($replacement === null) {
+        if (null === $replacement) {
             throw new EnvironmentException("Error while configuring variable {$variable}.");
         }
         $this->localEnvContent = $replacement;
@@ -601,7 +575,12 @@ class Emakina implements EnvironmentInterface
         if (\count($matches)) {
             foreach ($matches as $match) {
                 $conf = $this->output->ask($match[1], $match[2] ?? null);
-                if ($conf !== '' && $match[2] !== $conf) {
+
+                if (!\is_string($conf)) {
+                    throw new InvalidArgumentException(sprintf($match[1] . ' should be a string, %s given', \gettype($conf)));
+                }
+
+                if ('' !== $conf && $match[2] !== $conf) {
                     $pattern = "/({$match[1]}=)(\\w*)/i";
                     $content = preg_replace($pattern, "$1{$conf}", $this->getLocalEnvData());
                     if (!\is_string($content)) {
@@ -621,8 +600,6 @@ class Emakina implements EnvironmentInterface
     /**
      * Add the host to /etc/hosts if missing
      * TODO Fix find a way to prevent permission error.
-     *
-     * @param string $serverName
      */
     private function setupHost(string $serverName): void
     {
@@ -647,8 +624,6 @@ class Emakina implements EnvironmentInterface
 
     /**
      * Let the user choose the server name of the project.
-     *
-     * @return string
      */
     private function chooseServerName(): string
     {
@@ -661,6 +636,11 @@ class Emakina implements EnvironmentInterface
                 'Specify the server name',
                 $serverName
             );
+
+            if (!\is_string($serverName)) {
+                throw new InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($serverName)));
+            }
+
             $pattern = '/(server_name )(\\S+)/i';
             $content = preg_replace($pattern, "$1{$serverName};", $this->getNginxConf());
             if (!\is_string($content)) {

@@ -11,21 +11,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Mutagen
 {
-    private ProcessFactory $processFactory;
-
     private OutputInterface $output;
 
     private EnvironmentInterface $environment;
 
-    public function __construct(ProcessFactory $processFactory)
+    public function __construct(private ProcessFactory $processFactory)
     {
-        $this->processFactory = $processFactory;
         $this->output = new ConsoleOutput();
     }
 
     /**
-     * @param EnvironmentInterface $environment
-     *
      * @return Mutagen
      */
     public function setEnvironment(EnvironmentInterface $environment): self
@@ -37,8 +32,6 @@ class Mutagen
 
     /**
      * Create Mutagen session for the project.
-     *
-     * @return Process
      */
     public function createSession(): Process
     {
@@ -65,8 +58,6 @@ class Mutagen
 
     /**
      * Try to resume the Mutagen session. Obviously, it must have been initialized first.
-     *
-     * @return Process
      */
     public function resumeSession(): Process
     {
@@ -81,8 +72,6 @@ class Mutagen
 
     /**
      * Check if the mutagen session for the project exists. Return true if it does.
-     *
-     * @return bool
      */
     public function isExistingSession(): bool
     {
@@ -94,13 +83,11 @@ class Mutagen
             ]
         );
 
-        return strpos($process->getProcess()->getOutput(), 'No sessions found') === false;
+        return false === strpos($process->getProcess()->getOutput(), 'No sessions found');
     }
 
     /**
      * Check if the file synchronization is done.
-     *
-     * @return bool
      */
     public function isSynced(): bool
     {
@@ -112,13 +99,11 @@ class Mutagen
             ]
         );
 
-        return stripos($process->getProcess()->getOutput(), 'Watching for changes') !== false;
+        return false !== stripos($process->getProcess()->getOutput(), 'Watching for changes');
     }
 
     /**
      * Check if the mutagen session is paused.
-     *
-     * @return bool
      */
     public function isPaused(): bool
     {
@@ -130,19 +115,18 @@ class Mutagen
             ]
         );
 
-        return stripos($process->getProcess()->getOutput(), '[Paused]') !== false;
+        return false !== stripos($process->getProcess()->getOutput(), '[Paused]');
     }
 
     /**
      * Display a progress bar until the file synchronization is done.
-     *
-     * @return bool
      */
     public function monitorUntilSynced(): bool
     {
         $process = $this->processFactory->createProcess(
             [
                 'mutagen',
+                'sync',
                 'monitor',
                 "--label-selector=name=={$this->environment->getDockerRequiredVariables()['COMPOSE_PROJECT_NAME']}",
             ],
@@ -162,7 +146,7 @@ class Mutagen
                         $progressBar->setProgress((int) $progressMatch[1]);
                     }
 
-                    return rtrim($statusMatch[1]) === 'Watching for changes';
+                    return 'Watching for changes' === rtrim($statusMatch[1]);
                 }
 
                 return false;
@@ -170,6 +154,6 @@ class Mutagen
         );
         $progressBar->finish();
 
-        return $process->getExitCode() !== Process::CODE_TIMEOUT;
+        return Process::CODE_TIMEOUT !== $process->getExitCode();
     }
 }

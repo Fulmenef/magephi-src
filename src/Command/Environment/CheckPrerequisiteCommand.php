@@ -20,16 +20,13 @@ class CheckPrerequisiteCommand extends AbstractEnvironmentCommand
 {
     protected string $command = 'prerequisites';
 
-    private System $prerequisite;
-
     public function __construct(
         ProcessFactory $processFactory,
         DockerCompose $dockerCompose,
         Manager $manager,
-        System $prerequisite
+        private System $system
     ) {
         parent::__construct($processFactory, $dockerCompose, $manager);
-        $this->prerequisite = $prerequisite;
     }
 
     public function getPrerequisites(): array
@@ -51,7 +48,7 @@ class CheckPrerequisiteCommand extends AbstractEnvironmentCommand
         $table->setHeaders(['Component', 'Mandatory', 'Status', 'Comment']);
 
         $ready = true;
-        foreach ($this->prerequisite->getBinaryPrerequisites() as $component => $info) {
+        foreach ($this->system->getBinaryPrerequisites() as $component => $info) {
             if (!$info['status']) {
                 $ready = false;
             }

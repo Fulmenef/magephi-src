@@ -15,25 +15,13 @@ class Make
 {
     private EnvironmentInterface $environment;
 
-    private ProcessFactory $processFactory;
-
-    private DockerCompose $dockerCompose;
-
-    private Mutagen $mutagen;
-
     public function __construct(
-        DockerCompose $dockerCompose,
-        ProcessFactory $processFactory,
-        Mutagen $mutagen
+        private DockerCompose $dockerCompose,
+        private ProcessFactory $processFactory,
+        private Mutagen $mutagen
     ) {
-        $this->dockerCompose = $dockerCompose;
-        $this->processFactory = $processFactory;
-        $this->mutagen = $mutagen;
     }
 
-    /**
-     * @param EnvironmentInterface $environment
-     */
     public function setEnvironment(EnvironmentInterface $environment): void
     {
         $this->environment = $environment;
@@ -43,10 +31,6 @@ class Make
 
     /**
      * Run the `make start` command with a progress bar.
-     *
-     * @param bool $install
-     *
-     * @return Process
      */
     public function start(bool $install = false): Process
     {
@@ -54,13 +38,13 @@ class Make
             ['make', 'start'],
             $_ENV['SHELL_VERBOSITY'] >= 1 ? 360 : 60,
             function (/* @noinspection PhpUnusedParameterInspection */ $type, $buffer) {
-                return (stripos($buffer, 'Creating') !== false
+                return (false !== stripos($buffer, 'Creating')
                         && (
-                            stripos($buffer, 'network') !== false
-                            || stripos($buffer, 'volume') !== false
-                            || stripos($buffer, 'done') !== false
+                            false !== stripos($buffer, 'network')
+                            || false !== stripos($buffer, 'volume')
+                            || false !== stripos($buffer, 'done')
                         ))
-                    || (stripos($buffer, 'Starting') !== false && stripos($buffer, 'done') !== false);
+                    || (false !== stripos($buffer, 'Starting') && false !== stripos($buffer, 'done'));
             },
             $install ? $this->environment->getContainers() + $this->environment->getVolumes()
                 + 2 : $this->environment->getContainers() + 1
@@ -69,8 +53,6 @@ class Make
 
     /**
      * Run the `make build` command with a progress bar.
-     *
-     * @return Process
      */
     public function build(): Process
     {
@@ -86,8 +68,6 @@ class Make
 
     /**
      * Run the `make stop` command with a progress bar.
-     *
-     * @return Process
      */
     public function stop(): Process
     {
@@ -95,7 +75,7 @@ class Make
             ['make', 'stop'],
             60,
             function ($type, $buffer) {
-                return stripos($buffer, 'stopping') !== false && stripos($buffer, 'done') !== false;
+                return false !== stripos($buffer, 'stopping') && false !== stripos($buffer, 'done');
             },
             $this->environment->getContainers() + 1
         );
@@ -103,8 +83,6 @@ class Make
 
     /**
      * Run the `make purge` command with a progress bar.
-     *
-     * @return Process
      */
     public function purge(): Process
     {
@@ -116,14 +94,14 @@ class Make
                     (
                         stripos($buffer, 'done')
                         && (
-                            stripos($buffer, 'stopping') !== false
-                            || stripos($buffer, 'removing') !== false
+                            false !== stripos($buffer, 'stopping')
+                            || false !== stripos($buffer, 'removing')
                         )
                     )
                     || (
-                        stripos($buffer, 'removing') !== false
+                        false !== stripos($buffer, 'removing')
                         && (
-                            stripos($buffer, 'network') !== false || stripos($buffer, 'volume') !== false
+                            false !== stripos($buffer, 'network') || false !== stripos($buffer, 'volume')
                         )
                     );
             },

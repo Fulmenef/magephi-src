@@ -16,17 +16,12 @@ class DockerHub
 {
     private const API_ENDPOINT = 'https://hub.docker.com/v2/repositories/ajardin/%s/tags';
 
-    private HttpClientInterface $httpClient;
-
-    public function __construct(HttpClientInterface $httpClient)
+    public function __construct(private HttpClientInterface $httpClient)
     {
-        $this->httpClient = $httpClient;
     }
 
     /**
      * Retrieves the tags associated to the given image.
-     *
-     * @param string $image
      *
      * @throws DockerHubException
      * @throws TransportExceptionInterface
@@ -52,22 +47,22 @@ class DockerHub
     /**
      * Analyzes the Docker Hub API response by checking the status code and by decoding the JSON content.
      *
-     * @param ResponseInterface $response
-     *
      * @throws DockerHubException
      *
-     * @return array<array|int|string>
+     * @return array<array<string>|int|string>
      */
     private function parseResponse(ResponseInterface $response): array
     {
         try {
             $rawContent = $response->getContent(true);
-            $parsedContent = (!empty($rawContent) && $rawContent !== 'null')
+            $parsedContent = (!empty($rawContent) && 'null' !== $rawContent)
                 ? json_decode($rawContent, true, 512, JSON_THROW_ON_ERROR) : [];
-        } catch (ExceptionInterface | JsonException $exception) {
-            throw new DockerHubException(
-                sprintf("Unable to parse the Docker Hub API response.\n%s", $exception->getMessage())
-            );
+
+            if (!\is_array($parsedContent)) {
+                $parsedContent = [$parsedContent];
+            }
+        } catch (ExceptionInterface|JsonException $exception) {
+            throw new DockerHubException(sprintf("Unable to parse the Docker Hub API response.\n%s", $exception->getMessage()));
         }
 
         return $parsedContent;

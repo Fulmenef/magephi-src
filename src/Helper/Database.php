@@ -14,31 +14,20 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class Database
 {
-    private ProcessFactory $processFactory;
-
     private EnvironmentInterface $environment;
-
-    private System $system;
 
     private SymfonyStyle $output;
 
     public function __construct(
-        ProcessFactory $processFactory,
-        System $system
+        private ProcessFactory $processFactory,
+        private System $system
     ) {
-        $this->processFactory = $processFactory;
-        $this->system = $system;
     }
 
     /**
      * Import a database dump. Display a progress bar to visually follow the process.
      *
-     * @param string $database
-     * @param string $filename
-     *
      * @throws EnvironmentException
-     *
-     * @return Process
      */
     public function import(string $database, string $filename): Process
     {
@@ -74,7 +63,7 @@ class Database
         }
 
         $username = $this->environment->getEnvData('mysql_user') ?: 'root';
-        $password = $username === 'root' ? $this->environment->getEnvData(
+        $password = 'root' === $username ? $this->environment->getEnvData(
             'mysql_root_password'
         ) : $this->environment->getEnvData('mysql_password');
 
@@ -111,8 +100,6 @@ class Database
     /**
      * Update URLs in the database with the configured server name.
      *
-     * @param string $database
-     *
      * @throws EnvironmentException
      *
      * @return Process
@@ -121,7 +108,7 @@ class Database
     {
         $serverName = $this->environment->getServerName(true);
         $username = $this->environment->getEnvData('mysql_user') ?: 'root';
-        $password = $username === 'root' ? $this->environment->getEnvData(
+        $password = 'root' === $username ? $this->environment->getEnvData(
             'mysql_root_password'
         ) : $this->environment->getEnvData('mysql_password');
 
@@ -149,8 +136,6 @@ class Database
     }
 
     /**
-     * @param EnvironmentInterface $environment
-     *
      * @return Database
      */
     public function setEnvironment(EnvironmentInterface $environment): self
@@ -161,8 +146,6 @@ class Database
     }
 
     /**
-     * @param SymfonyStyle $output
-     *
      * @return Database
      */
     public function setOutput(SymfonyStyle $output): self

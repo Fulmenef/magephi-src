@@ -7,29 +7,25 @@ use Symfony\Component\Yaml\Yaml as YamlService;
 
 class Yaml
 {
-    private Filesystem $filesystem;
-
-    public function __construct(Filesystem $filesystem)
+    public function __construct(private Filesystem $filesystem)
     {
-        $this->filesystem = $filesystem;
     }
 
     /**
      * Return content of yaml file in array format.
      *
-     * @param string $filepath
-     *
      * @return array<string, array<string, array<string, string>>>
      */
     public function read(string $filepath): array
     {
+        // Method Magephi\Component\Yaml::read() should return array<string, array<string, array<string, string>>> but returns mixed.
+        // @phpstan-ignore-next-line
         return YamlService::parseFile($filepath) ?? [];
     }
 
     /**
      * Write the array in a yamll file.
      *
-     * @param string                                              $filepath
      * @param array<string, array<string, array<string, string>>> $content
      */
     public function write(string $filepath, array $content): void
@@ -42,7 +38,6 @@ class Yaml
     /**
      * Merge current content of the given file with the nex content.
      *
-     * @param string                                              $filepath
      * @param array<string, array<string, array<string, string>>> $content
      */
     public function update(string $filepath, array $content): void
@@ -65,7 +60,6 @@ class Yaml
      * To remove $existing['key']['value1'], one must provide $path as ['key' => 'value1']
      * Nothing else is supported at the moment
      *
-     * @param string               $filepath
      * @param array<string,string> $path
      */
     public function remove(string $filepath, array $path): void

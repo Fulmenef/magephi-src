@@ -6,12 +6,13 @@ namespace Magephi\Command\Environment;
 
 use ErrorException;
 use Exception;
+use InvalidArgumentException;
 use Magephi\Component\DockerCompose;
+use Magephi\Component\Json;
 use Magephi\Component\ProcessFactory;
 use Magephi\Entity\Environment\Manager;
 use Magephi\Entity\System;
 use Magephi\Exception\ComposerException;
-use Nadar\PhpComposerReader\ComposerReader;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -22,20 +23,15 @@ class CreateCommand extends AbstractEnvironmentCommand
 {
     protected string $command = 'create';
 
-    private LoggerInterface $logger;
-
-    private System $system;
-
     public function __construct(
         ProcessFactory $processFactory,
         DockerCompose $dockerCompose,
         Manager $manager,
-        LoggerInterface $logger,
-        System $system
+        private LoggerInterface $logger,
+        private System $system,
+        private Json $json
     ) {
         parent::__construct($processFactory, $dockerCompose, $manager);
-        $this->logger = $logger;
-        $this->system = $system;
     }
 
     public function getPrerequisites(): array
@@ -95,11 +91,13 @@ class CreateCommand extends AbstractEnvironmentCommand
                 'composer',
                 'create-project',
                 '--ignore-platform-reqs',
+                '--no-install',
+                '--no-interaction',
                 '--repository=https://repo.magento.com/',
                 $package,
                 '.',
             ],
-            900,
+            30,
             ['COMPOSER_MEMORY_LIMIT' => '2G']
         );
         $this->logger->info('Based project created');
@@ -118,7 +116,7 @@ class CreateCommand extends AbstractEnvironmentCommand
 
         try {
             $this->initPackageDev();
-        } catch (ComposerException | Exception $e) {
+        } catch (ComposerException|Exception $e) {
             $this->interactive->error($e->getMessage());
 
             return self::FAILURE;
@@ -213,7 +211,6 @@ EOD;
      * Check if the current directory is empty, if not, ask the name of the project to create the directory where the
      * Magento 2 project will be installed.
      *
-     * @param string   $currentDir
      * @param string[] $scan
      *
      * @throws ErrorException
@@ -223,42 +220,65 @@ EOD;
         if (\count($scan) > 2) {
             $projectName = $this->interactive->ask('Enter your project name', 'magento2');
 
+            if (!\is_string($projectName)) {
+                throw new InvalidArgumentException(sprintf('Project name should be a string, %s given', \gettype($projectName)));
+            }
+
             try {
                 mkdir($currentDir . '/' . $projectName);
                 chdir($projectName);
             } catch (ErrorException $e) {
-                throw new ErrorException(
-                    'A directory with that name already exist, try again with another name or try somewhere else.'
-                );
+                throw new ErrorException('A directory with that name already exist, try again with another name or try somewhere else.');
             }
         }
     }
 
     /**
      * Use specific dependencies for dev for composer.
-     *
-     * @throws ComposerException
      */
     protected function initComposerDev(): void
     {
-        $composer = new ComposerReader('composer.json');
-        if (!$composer->canRead()) {
-            throw new ComposerException('The composer.json cannot be read.');
-        }
+        $composer = $this->json->getContent('composer.json');
 
         $requireDev = [
-            'bitexpert/phpstan-magento'   => 'dev-master',
-            'emakinafr/docker-magento2'   => '^3.0',
-            'friendsofphp/php-cs-fixer'   => '^2.0',
-            'roave/security-advisories'   => 'dev-latest',
+            'bitexpert/phpstan-magento' => 'dev-master',
+            'emakinafr/docker-magento2' => '^3.0',
+            'friendsofphp/php-cs-fixer' => '^2.0',
         ];
-        $composer->updateSection('require-dev', $requireDev);
-        $composer->save();
+        $composer['require-dev'] = $requireDev;
 
-        $this->processFactory->runProcess(
-            ['composer', 'update', '--ignore-platform-reqs', '--optimize-autoloader'],
-            90,
-            ['COMPOSER_MEMORY_LIMIT' => '2G']
+        $config = $composer['config'] ?? [];
+        $version = '7.4.0'; // Todo add 8.1.0 for Magento 2.4.4+
+        $config['platform'] = [
+            'php'           => $version,
+            'ext-bcmath'    => $version,
+            'ext-gd'        => $version,
+            'ext-intl'      => $version,
+            'ext-pdo_mysql' => $version,
+            'ext-soap'      => $version,
+            'ext-xsl'       => $version,
+            'ext-sockets'   => $version,
+        ];
+        $composer['config'] = $config;
+
+        $this->json->putContent($composer, 'composer.json');
+
+        $this->processFactory->runInteractiveProcess(
+            [
+                'docker',
+                'run',
+                '--rm',
+                '--interactive',
+                '--tty',
+                '--volume',
+                '$PWD:/app',
+                '--env',
+                'COMPOSER_MEMORY_LIMIT=2G',
+                'composer',
+                'update',
+                '--optimize-autoloader',
+            ],
+            1200
         );
         $this->interactive->comment('Composer dependencies installed');
 
@@ -267,17 +287,11 @@ EOD;
 
     /**
      * Use specific dependencies for dev for yarn.
-     *
-     * @throws ComposerException
-     * @throws \Exception
      */
     protected function initPackageDev(): void
     {
-        $package = new ComposerReader('package.json');
-        if (!$package->canRead()) {
-            throw new ComposerException('The package.json cannot be read.');
-        }
-        $content = $package->getContent();
+        $package = $this->json->getContent('package.json');
+        $content = $package['devDependencies'];
 
         $requireDev = [
             '@magento/eslint-config'     => '^1.5.0',
@@ -293,13 +307,13 @@ EOD;
             'stylelint'                  => '^11.1.1',
             'stylelint-config-standard'  => '^19.0.0',
         ];
-        $devDependencies = array_merge($requireDev, $content['devDependencies']);
+        $devDependencies = array_merge($requireDev, $content);
         asort($devDependencies);
-        $package->updateSection('devDependencies', $devDependencies);
-        $package->save();
+        $package['devDependencies'] = $devDependencies;
+        $this->json->putContent($package, 'package.json');
 
         if ($this->system->isInstalled('yarn')) {
-            $this->processFactory->runProcess(['yarn', 'install'], 180);
+            $this->processFactory->runInteractiveProcess(['yarn', 'install'], 180);
             $this->interactive->comment('Yarn packages installed');
         } else {
             $this->interactive->note('Yarn is not installed locally, the packages have not been installed.');

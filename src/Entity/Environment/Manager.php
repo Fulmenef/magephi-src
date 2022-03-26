@@ -19,39 +19,19 @@ class Manager
 {
     private SymfonyStyle $output;
 
-    private Emakina $emakina;
-
-    private DockerCompose $dockerCompose;
-
-    private Database $database;
-
-    private Filesystem $filesystem;
-
-    private Yaml $yaml;
-
     public function __construct(
-        Emakina $emakina,
-        Filesystem $filesystem,
-        Yaml $yaml,
-        DockerCompose $dockerCompose,
-        Database $database
+        private Emakina $emakina,
+        private Filesystem $filesystem,
+        private Yaml $yaml,
+        private DockerCompose $dockerCompose,
+        private Database $database
     ) {
-        // Environments
-        $this->emakina = $emakina;
-
-        // Services
-        $this->filesystem = $filesystem;
-        $this->yaml = $yaml;
-        $this->dockerCompose = $dockerCompose;
         $this->dockerCompose->setEnvironment($this->getEnvironment());
-        $this->database = $database;
         $this->database->setEnvironment($this->getEnvironment());
     }
 
     /**
      * Start the current environment.
-     *
-     * @return bool
      */
     public function start(): bool
     {
@@ -60,8 +40,6 @@ class Manager
 
     /**
      * Stop the current environment.
-     *
-     * @return bool
      */
     public function stop(): bool
     {
@@ -70,8 +48,6 @@ class Manager
 
     /**
      * Build containers for the current environment.
-     *
-     * @return bool
      */
     public function build(): bool
     {
@@ -82,8 +58,6 @@ class Manager
      * Install the current environment and add it to the configuration file.
      *
      * @param array<mixed> $data
-     *
-     * @return bool
      */
     public function install(array $data = []): bool
     {
@@ -99,8 +73,6 @@ class Manager
 
     /**
      * Uninstall the current environment and remove it from the configuration file.
-     *
-     * @return bool
      */
     public function uninstall(): bool
     {
@@ -117,7 +89,6 @@ class Manager
     /**
      * Open a terminal to the given container for the current environment.
      *
-     * @param string               $container
      * @param array<string,string> $arguments
      */
     public function openTerminal(string $container, array $arguments): void
@@ -147,8 +118,6 @@ class Manager
 
     /**
      * Get current environment.
-     *
-     * @return EnvironmentInterface
      */
     public function getEnvironment(): EnvironmentInterface
     {
@@ -156,8 +125,6 @@ class Manager
     }
 
     /**
-     * @param SymfonyStyle $output
-     *
      * @return Manager
      */
     public function setOutput(SymfonyStyle $output): self
@@ -172,11 +139,6 @@ class Manager
     /**
      * Import database from a file on the project. The file must be at the root or in a direct subdirectory.
      * TODO: Import database from Magento Cloud CLI if available.
-     *
-     * @param string      $filename
-     * @param null|string $database
-     *
-     * @return bool
      */
     public function importDatabase(string $filename, string $database = null): bool
     {
@@ -188,10 +150,8 @@ class Manager
             $database = $this->getEnvironment()->getDatabase();
         }
 
-        if ($database === '') {
-            throw new InvalidArgumentException(
-                'The database is not defined. Ensure a database is defined in the configuration or provide one in the command.'
-            );
+        if ('' === $database) {
+            throw new InvalidArgumentException('The database is not defined. Ensure a database is defined in the configuration or provide one in the command.');
         }
 
         try {
@@ -225,8 +185,6 @@ class Manager
     /**
      * Check whether an environment has been installed for this project
      * TODO Check if environment is installed.
-     *
-     * @return bool
      */
     public function hasEnvironment(): bool
     {
@@ -243,8 +201,6 @@ class Manager
 
     /**
      * Update database url with the environment's server name.
-     *
-     * @param string $database
      */
     private function updateDatabase(string $database): void
     {
@@ -265,8 +221,6 @@ class Manager
 
     /**
      * Get the configuration file, create it if it doesn't exist.
-     *
-     * @return string
      */
     private function getConfigFile(): string
     {
