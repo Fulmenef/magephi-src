@@ -8,7 +8,7 @@ box: ## Compiles the project into a PHAR archive
 	composer dump-env prod
 	./bin/console cache:clear
 	./bin/console cache:warmup
-	docker run --rm --interactive --volume="$$(pwd):/app:delegated" ajardin/humbug-box compile --verbose --ansi
+	box compile --verbose --ansi
 	rm .env.local.php
 .PHONY: box
 

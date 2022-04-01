@@ -53,6 +53,7 @@ jobs:
       - name: Compilation
         run: |
           mkdir ~/.magephi
+          composer global require humbug/box
           make box
           ./build/magephi.phar list
 
