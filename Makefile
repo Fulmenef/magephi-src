@@ -4,11 +4,14 @@
 ## ----------------------------------------------------------------------------
 ##
 
+# Disable PHP restart by Box when compiling in Github Actions
+export PHP_NO_RESTART := $(shell if [ ! -z "$${GITHUB_ACTIONS}" ]; then echo "--no-restart"; else echo ""; fi)
+
 box: ## Compiles the project into a PHAR archive
 	composer dump-env prod
-	./bin/console cache:clear
-	./bin/console cache:warmup
-	box compile --verbose --ansi
+	box validate --verbose --ansi
+	box compile --verbose --ansi $(PHP_NO_RESTART)
+	box info --verbose --ansi
 	rm .env.local.php
 .PHONY: box
 

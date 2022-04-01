@@ -13,8 +13,12 @@ return static function (ContainerConfigurator $containerConfigurator): void {
         ->autoconfigure(true);
 
     $services
-        ->load('Magephi\\', __DIR__ . '/../src/*')
-        ->exclude([__DIR__ . '/../src/DependencyInjection/', __DIR__ . '/../src/Kernel.php', __DIR__ . '/../src/Application.php']);
+        ->load('Magephi\\', '../src/*')
+        ->exclude([
+            '../src/DependencyInjection/',
+            '../src/Kernel.php',
+            '../src/Application.php',
+        ]);
 
     $services->set(CommandListener::class)
         ->tag('kernel.event_listener', ['event' => 'console.command']);
