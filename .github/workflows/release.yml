@@ -93,6 +93,6 @@ jobs:
         run: |
           git add bin/magephi magephi.phar.asc
           git commit -S -m "Magephi ${GITHUB_REF#refs/tags/}" -m "${{ steps.general_changelog.outputs.changelog }}"
-          git push --quiet origin feature/composer
+          git push --quiet origin master
           git tag -s ${GITHUB_REF#refs/tags/} -m "${GITHUB_REF#refs/tags/}" && \
           git push --quiet origin ${GITHUB_REF#refs/tags/}
