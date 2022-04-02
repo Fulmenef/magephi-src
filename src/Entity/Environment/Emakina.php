@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Magephi\Entity\Environment;
 
 use InvalidArgumentException;
+use Magephi\Application;
 use Magephi\Component\DockerHub;
 use Magephi\Component\Mutagen;
 use Magephi\Component\Process;
@@ -614,7 +615,7 @@ class Emakina implements EnvironmentInterface
             if ($this->output->confirm(
                 'It seems like this host is not in your hosts file yet, do you want to add it ?'
             )) {
-                $newHost = sprintf("# Added by %s\n", Kernel::NAME);
+                $newHost = sprintf("# Added by %s\n", Application::APPLICATION_NAME);
                 $newHost .= "127.0.0.1   {$serverName}\n";
                 $this->filesystem->appendToFile('/etc/hosts', $newHost);
                 $this->output->text('Server added in your host file.');

@@ -35,10 +35,10 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          tools: composer:v2
+          ini-values: phar.readonly=0
 
       - name: Install dependencies
-        run: composer install --ignore-platform-reqs --prefer-dist --no-progress --optimize-autoloader --classmap-authoritative
+        run: composer install --prefer-dist --no-progress --optimize-autoloader --classmap-authoritative
 
       - name: PHP-CS-Fixer
         run: ./vendor/bin/php-cs-fixer fix --verbose --dry-run
@@ -54,6 +54,13 @@ jobs:
           wget -O "${destination}" "https://github.com/fabpot/${repository}/releases/download/${latest_version}/${repository}_${latest_version##v}_linux_amd64" && \
           chmod +x "${destination}" && \
           ${destination}
+
+      - name: Compilation
+        run: |
+          mkdir ~/.magephi
+          composer global require humbug/box
+          make box
+          ./build/magephi.phar list
 
   magento:
     name: Test application on Magento

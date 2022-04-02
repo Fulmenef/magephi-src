@@ -10,7 +10,6 @@ parameters:
 
 	symfony:
 		container_xml_path: var/cache/dev/Magephi_KernelDevDebugContainer.xml
-		console_application_loader: tests/console-application.php
 
 	ignoreErrors:
 		# False positive from the php documentation

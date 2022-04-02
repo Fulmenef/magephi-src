@@ -25,14 +25,16 @@ class ExecCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $command = $input->getArgument('content');
+
+        if (!\is_string($command)) {
+            throw new \InvalidArgumentException(sprintf('The type should be a string, %s given', \gettype($command)));
+        }
+
         $container = $input->getArgument('container');
         if (\is_string($container)) {
-            $process = $this->dockerCompose->executeContainerCommand(
-                (string) $container,
-                (string) $command
-            );
+            $process = $this->dockerCompose->executeContainerCommand($container, $command);
         } else {
-            $process = $this->dockerCompose->executeGlobalCommand((string) $command);
+            $process = $this->dockerCompose->executeGlobalCommand($command);
         }
 
         if ($process->getProcess()->isSuccessful()) {

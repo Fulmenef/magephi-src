@@ -2,14 +2,15 @@
     "main": "bin/console",
     "output": "build/magephi.phar",
     "directories": [
-        "config",
-        "src",
-        "vendor"
+        "config"
     ],
     "files": [
-        ".env.local.php"
+        ".env.local.php",
+        "autoload_runtime.template",
+        "vendor/composer/installed.php"
     ],
-    "check-requirements": false,
+    "force-autodiscovery": true,
+    "exclude-composer-files": false,
     "git-version": "package_version",
     "compression": "GZ",
     "replacements": {

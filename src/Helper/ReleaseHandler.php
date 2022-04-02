@@ -23,7 +23,7 @@ class ReleaseHandler
             /** @var string[] $scan */
             $scan = scandir($customDir);
 
-            $diff = array_diff($scan, ['.', '..', $this->kernel->getVersion(), 'config.yml']);
+            $diff = array_diff($scan, ['.', '..', 'config.yml']);
             if (!empty($diff)) {
                 foreach ($diff as $directory) {
                     $this->deleteFiles($customDir . '/' . $directory);
