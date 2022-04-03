@@ -613,11 +613,11 @@ class Emakina implements EnvironmentInterface
         preg_match_all("/{$serverName}/i", $hosts, $matches, PREG_SET_ORDER, 0);
         if (empty($matches)) {
             if ($this->output->confirm(
-                'It seems like this host is not in your hosts file yet, do you want to add it ?'
+                'It seems like this host is not in your hosts file yet, do you want to add it (sudo necessary) ?'
             )) {
-                $newHost = sprintf("# Added by %s\n", Application::APPLICATION_NAME);
-                $newHost .= "127.0.0.1   {$serverName}\n";
-                $this->filesystem->appendToFile('/etc/hosts', $newHost);
+                $newHost = sprintf('# Added by %s\n', Application::APPLICATION_NAME);
+                $newHost .= sprintf('127.0.0.1   %s\n', $serverName);
+                $this->processFactory->runInteractiveProcess(['echo', "\"{$newHost}\"", '|', 'sudo', 'tee', '-a', '/etc/hosts', '>', '/dev/null'], 60);
                 $this->output->text('Server added in your host file.');
             }
         }
