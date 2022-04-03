@@ -45,7 +45,30 @@ class InstallCommand extends AbstractMagentoCommand
             --use-rewrites=%d
             --search-engine=%s
             --elasticsearch-host=%s
-            --elasticsearch-port=%s",
+            --elasticsearch-port=%s
+            --session-save=%s
+            --session-save-redis-host=%s
+            --session-save-redis-port=%d
+            --session-save-redis-password=%s
+            --session-save-redis-timeout=%d
+            --session-save-redis-persistent-id=%s
+            --session-save-redis-db=%s
+            --session-save-redis-compression-threshold=%s
+            --session-save-redis-compression-lib=%s
+            --session-save-redis-log-level=%s
+            --session-save-redis-max-concurrency=%d
+            --session-save-redis-break-after-frontend=%s
+            --session-save-redis-break-after-adminhtml=%s
+            --session-save-redis-first-lifetime=%d
+            --session-save-redis-bot-first-lifetime=%d
+            --session-save-redis-bot-lifetime=%d
+            --session-save-redis-disable-locking=%s
+            --session-save-redis-min-lifetime=%d
+            --session-save-redis-max-lifetime=%d
+            --session-save-redis-sentinel-master=%s
+            --session-save-redis-sentinel-servers=%s
+            --session-save-redis-sentinel-verify-master=%s
+            --session-save-redis-sentinel-connect-retries=%d",
             $environment->getServerName(true),
             'mysql',
             $environment->getDatabase(),
@@ -100,7 +123,30 @@ class InstallCommand extends AbstractMagentoCommand
             // @phpstan-ignore-next-line
             $this->interactive->ask('What search engine do you want ?', 'elasticsearch7'),
             'elasticsearch',
-            9200
+            9200,
+            'redis',
+            'redis',
+            6379,
+            '',
+            2.5,
+            '',
+            0,
+            2048,
+            'gzip',
+            4,
+            6,
+            5,
+            30,
+            600,
+            60,
+            7200,
+            0,
+            60,
+            2592000,
+            '',
+            '',
+            0,
+            5
         );
 
         try {
