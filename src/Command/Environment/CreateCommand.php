@@ -36,7 +36,7 @@ class CreateCommand extends AbstractEnvironmentCommand
 
     public function getPrerequisites(): array
     {
-        return [];
+        return ['binary' => ['Docker']];
     }
 
     protected function configure(): void
@@ -92,7 +92,6 @@ class CreateCommand extends AbstractEnvironmentCommand
                 'create-project',
                 '--ignore-platform-reqs',
                 '--no-install',
-                '--no-interaction',
                 '--repository=https://repo.magento.com/',
                 $package,
                 '.',
