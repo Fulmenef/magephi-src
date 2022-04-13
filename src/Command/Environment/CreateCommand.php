@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Magephi\Command\Environment;
 
+use Composer\Semver\Comparator;
 use ErrorException;
 use Exception;
 use InvalidArgumentException;
@@ -82,7 +83,7 @@ class CreateCommand extends AbstractEnvironmentCommand
         /** @var string $patch */
         $patch = $input->getOption('patch');
         if ($patch) {
-            $patch = ltrim('=', $patch);
+            $patch = ltrim($patch, '=');
             $package .= "={$patch}";
         }
 
@@ -102,7 +103,7 @@ class CreateCommand extends AbstractEnvironmentCommand
         $this->logger->info('Based project created');
 
         try {
-            $this->initComposerDev();
+            $this->initComposerDev($patch);
         } catch (ComposerException $e) {
             $this->interactive->error($e->getMessage());
 
@@ -128,6 +129,131 @@ class CreateCommand extends AbstractEnvironmentCommand
         $this->interactive->success('Your project has been created, you can now use the install command.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Check if the current directory is empty, if not, ask the name of the project to create the directory where the
+     * Magento 2 project will be installed.
+     *
+     * @param string[] $scan
+     *
+     * @throws ErrorException
+     */
+    protected function initProjectDirectory(string $currentDir, array $scan): void
+    {
+        if (\count($scan) > 2) {
+            $projectName = $this->interactive->ask('Enter your project name', 'magento2');
+
+            if (!\is_string($projectName)) {
+                throw new InvalidArgumentException(sprintf('Project name should be a string, %s given', \gettype($projectName)));
+            }
+
+            try {
+                mkdir($currentDir . '/' . $projectName);
+                chdir($projectName);
+            } catch (ErrorException $e) {
+                throw new ErrorException('A directory with that name already exist, try again with another name or try somewhere else.');
+            }
+        }
+    }
+
+    /**
+     * Use specific dependencies for dev for composer.
+     *
+     * @param null|string $version Magento version
+     */
+    protected function initComposerDev(?string $version): void
+    {
+        $composer = $this->json->getContent('composer.json');
+
+        if (null === $version) {
+            $version = $composer['version'];
+        }
+
+        $requireDev = [
+            'emakinafr/docker-magento2' => '^3.0',
+        ];
+
+        if (Comparator::greaterThanOrEqualTo($version, '2.4.4')) {
+            $phpVersion = '8.1.0';
+        } else {
+            $phpVersion = '7.4.0';
+            $requireDev['bitexpert/phpstan-magento'] = 'dev-master';
+            $requireDev['friendsofphp/php-cs-fixer'] = '^2.0';
+        }
+
+        $composer['require-dev'] = $requireDev;
+
+        $config = $composer['config'] ?? [];
+        $config['platform'] = [
+            'php'           => $phpVersion,
+            'ext-bcmath'    => $phpVersion,
+            'ext-gd'        => $phpVersion,
+            'ext-intl'      => $phpVersion,
+            'ext-pdo_mysql' => $phpVersion,
+            'ext-soap'      => $phpVersion,
+            'ext-xsl'       => $phpVersion,
+            'ext-sockets'   => $phpVersion,
+        ];
+        $config['process-timeout'] = 600;
+        $composer['config'] = $config;
+
+        $this->json->putContent($composer, 'composer.json');
+
+        $this->processFactory->runInteractiveProcess(
+            [
+                'docker',
+                'run',
+                '--rm',
+                '--interactive',
+                '--tty',
+                '--volume',
+                '$PWD:/app',
+                '--env',
+                'COMPOSER_MEMORY_LIMIT=2G',
+                'composer',
+                'update',
+                '--optimize-autoloader',
+            ]
+        );
+        $this->interactive->comment('Composer dependencies installed');
+
+        $this->processFactory->runProcess(['composer', 'exec', 'docker-local-install']);
+    }
+
+    /**
+     * Use specific dependencies for dev for yarn.
+     */
+    protected function initPackageDev(): void
+    {
+        $package = $this->json->getContent('package.json');
+        $content = $package['devDependencies'];
+
+        $requireDev = [
+            '@magento/eslint-config'     => '^1.5.0',
+            'eslint'                     => '^6.5.1',
+            'eslint-config-google'       => '^0.14.0',
+            'eslint-config-recommended'  => '^4.0.0',
+            'eslint-plugin-jsx-a11y'     => '^6.2.3',
+            'eslint-plugin-package-json' => '^0.1.3',
+            'eslint-plugin-react'        => '^7.17.0',
+            'eslint-plugin-react-hooks'  => '^2.1.2',
+            'husky'                      => '^4.0.0-beta.2',
+            'lint-staged'                => '^10.0.0-0',
+            'stylelint'                  => '^11.1.1',
+            'stylelint-config-standard'  => '^19.0.0',
+        ];
+        $devDependencies = array_merge($requireDev, $content);
+        asort($devDependencies);
+        $package['devDependencies'] = $devDependencies;
+        $this->json->putContent($package, 'package.json');
+
+        if ($this->system->isInstalled('yarn')) {
+            $this->processFactory->runInteractiveProcess(['yarn', 'install'], 180);
+            $this->interactive->comment('Yarn packages installed');
+        } else {
+            $this->interactive->note('Yarn is not installed locally, the packages have not been installed.');
+        }
     }
 
     /**
@@ -204,118 +330,5 @@ EOD;
         fopen('app/code/.gitkeep', 'w');
         fopen('app/design/.gitkeep', 'w');
         fopen('app/etc/.gitkeep', 'w');
-    }
-
-    /**
-     * Check if the current directory is empty, if not, ask the name of the project to create the directory where the
-     * Magento 2 project will be installed.
-     *
-     * @param string[] $scan
-     *
-     * @throws ErrorException
-     */
-    protected function initProjectDirectory(string $currentDir, array $scan): void
-    {
-        if (\count($scan) > 2) {
-            $projectName = $this->interactive->ask('Enter your project name', 'magento2');
-
-            if (!\is_string($projectName)) {
-                throw new InvalidArgumentException(sprintf('Project name should be a string, %s given', \gettype($projectName)));
-            }
-
-            try {
-                mkdir($currentDir . '/' . $projectName);
-                chdir($projectName);
-            } catch (ErrorException $e) {
-                throw new ErrorException('A directory with that name already exist, try again with another name or try somewhere else.');
-            }
-        }
-    }
-
-    /**
-     * Use specific dependencies for dev for composer.
-     */
-    protected function initComposerDev(): void
-    {
-        $composer = $this->json->getContent('composer.json');
-
-        $requireDev = [
-            'bitexpert/phpstan-magento' => 'dev-master',
-            'emakinafr/docker-magento2' => '^3.0',
-            'friendsofphp/php-cs-fixer' => '^2.0',
-        ];
-        $composer['require-dev'] = $requireDev;
-
-        $config = $composer['config'] ?? [];
-        $version = '7.4.0'; // Todo add 8.1.0 for Magento 2.4.4+
-        $config['platform'] = [
-            'php'           => $version,
-            'ext-bcmath'    => $version,
-            'ext-gd'        => $version,
-            'ext-intl'      => $version,
-            'ext-pdo_mysql' => $version,
-            'ext-soap'      => $version,
-            'ext-xsl'       => $version,
-            'ext-sockets'   => $version,
-        ];
-        $composer['config'] = $config;
-
-        $this->json->putContent($composer, 'composer.json');
-
-        $this->processFactory->runInteractiveProcess(
-            [
-                'docker',
-                'run',
-                '--rm',
-                '--interactive',
-                '--tty',
-                '--volume',
-                '$PWD:/app',
-                '--env',
-                'COMPOSER_MEMORY_LIMIT=2G',
-                'composer',
-                'update',
-                '--optimize-autoloader',
-            ],
-            1200
-        );
-        $this->interactive->comment('Composer dependencies installed');
-
-        $this->processFactory->runProcess(['composer', 'exec', 'docker-local-install']);
-    }
-
-    /**
-     * Use specific dependencies for dev for yarn.
-     */
-    protected function initPackageDev(): void
-    {
-        $package = $this->json->getContent('package.json');
-        $content = $package['devDependencies'];
-
-        $requireDev = [
-            '@magento/eslint-config'     => '^1.5.0',
-            'eslint'                     => '^6.5.1',
-            'eslint-config-google'       => '^0.14.0',
-            'eslint-config-recommended'  => '^4.0.0',
-            'eslint-plugin-jsx-a11y'     => '^6.2.3',
-            'eslint-plugin-package-json' => '^0.1.3',
-            'eslint-plugin-react'        => '^7.17.0',
-            'eslint-plugin-react-hooks'  => '^2.1.2',
-            'husky'                      => '^4.0.0-beta.2',
-            'lint-staged'                => '^10.0.0-0',
-            'stylelint'                  => '^11.1.1',
-            'stylelint-config-standard'  => '^19.0.0',
-        ];
-        $devDependencies = array_merge($requireDev, $content);
-        asort($devDependencies);
-        $package['devDependencies'] = $devDependencies;
-        $this->json->putContent($package, 'package.json');
-
-        if ($this->system->isInstalled('yarn')) {
-            $this->processFactory->runInteractiveProcess(['yarn', 'install'], 180);
-            $this->interactive->comment('Yarn packages installed');
-        } else {
-            $this->interactive->note('Yarn is not installed locally, the packages have not been installed.');
-        }
     }
 }

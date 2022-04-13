@@ -13,7 +13,7 @@ on:
       - '!master'
 
 env:
-  MAGENTO_DIRECTORY: ./tmp/magento
+  MAGENTO_DIRECTORY: tmp/magento
   PHP_CS_FIXER_IGNORE_ENV: 1
 
 jobs:
@@ -93,10 +93,10 @@ jobs:
 
       - name: Cache Magephi dependencies
         id: cache-magephi
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: vendor
-          key: ${{ runner.OS }}-build-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-build-${{ hashFiles('composer.lock') }}
 
       - name: Install dependencies
         if: steps.cache-magephi.outputs.cache-hit != 'true'
@@ -107,10 +107,10 @@ jobs:
 
       - name: Cache Magento application
         id: cache-magento
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: ${{env.MAGENTO_DIRECTORY}}
-          key: ${{ runner.OS }}-build-${{ hashFiles('**/composer.lock') }}-magento-app
+          key: ${{ runner.os }}-build-${{ hashFiles('composer.lock') }}-magento-app
 
       - name: Regenerate files after cache restore
         if: steps.cache-magento.outputs.cache-hit == 'true'
@@ -138,7 +138,7 @@ jobs:
         working-directory: ${{env.MAGENTO_DIRECTORY}}
 
       - name: Install Magento
-        run: sudo magephi install --no-interaction -v
+        run: magephi install --no-interaction -v
         working-directory: ${{env.MAGENTO_DIRECTORY}}
 
       - name: Check status

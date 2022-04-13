@@ -15,6 +15,7 @@
         "ext-iconv": "*",
         "ext-json": "*",
         "ext-posix": "*",
+        "composer/semver": "^3.3",
         "nette/utils": "^3.2",
         "symfony/console": "^6.0",
         "symfony/dotenv": "^6.0",
