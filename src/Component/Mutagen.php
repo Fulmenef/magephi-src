@@ -37,6 +37,7 @@ class Mutagen
     {
         $command = [
             'mutagen',
+            'sync',
             'create',
             '--default-owner-beta=id:1000',
             '--default-group-beta=id:1000',
@@ -64,6 +65,7 @@ class Mutagen
         return $this->processFactory->runProcess(
             [
                 'mutagen',
+                'sync',
                 'resume',
                 "--label-selector=name={$this->environment->getDockerRequiredVariables()['COMPOSE_PROJECT_NAME']}",
             ]
@@ -78,6 +80,7 @@ class Mutagen
         $process = $this->processFactory->runProcess(
             [
                 'mutagen',
+                'sync',
                 'list',
                 "--label-selector=name={$this->environment->getDockerRequiredVariables()['COMPOSE_PROJECT_NAME']}",
             ]
@@ -94,6 +97,7 @@ class Mutagen
         $process = $this->processFactory->runProcess(
             [
                 'mutagen',
+                'sync',
                 'list',
                 "--label-selector=name={$this->environment->getDockerRequiredVariables()['COMPOSE_PROJECT_NAME']}",
             ]
@@ -110,6 +114,7 @@ class Mutagen
         $process = $this->processFactory->runProcess(
             [
                 'mutagen',
+                'sync',
                 'list',
                 "--label-selector=name={$this->environment->getDockerRequiredVariables()['COMPOSE_PROJECT_NAME']}",
             ]
