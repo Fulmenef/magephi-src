@@ -37,17 +37,18 @@ class Make
         return $this->processFactory->runProcessWithProgressBar(
             ['make', 'start'],
             $_ENV['SHELL_VERBOSITY'] >= 1 ? 360 : 60,
-            function (/* @noinspection PhpUnusedParameterInspection */ $type, $buffer) {
-                return (false !== stripos($buffer, 'Creating')
-                        && (
-                            false !== stripos($buffer, 'network')
-                            || false !== stripos($buffer, 'volume')
-                            || false !== stripos($buffer, 'done')
-                        ))
-                    || (false !== stripos($buffer, 'Starting') && false !== stripos($buffer, 'done'));
+            function ($type, $buffer) {
+                return (
+                        (false !== stripos($buffer, 'Creating')
+                            && false !== stripos($buffer, 'done'))
+                        || false !== stripos($buffer, 'Created'))
+                    || (
+                        (false !== stripos($buffer, 'Starting') && false !== stripos($buffer, 'done'))
+                        || false !== stripos($buffer, 'Started')
+                    );
             },
-            $install ? $this->environment->getContainers() + $this->environment->getVolumes()
-                + 2 : $this->environment->getContainers() + 1
+            $install ? $this->environment->getContainers() * 2 + $this->environment->getVolumes()
+                + 3 : $this->environment->getContainers() + 2
         );
     }
 
@@ -59,7 +60,7 @@ class Make
         return $this->processFactory->runProcessWithProgressBar(
             ['make', 'build'],
             600,
-            function (/* @noinspection PhpUnusedParameterInspection */ $type, $buffer) {
+            function ($type, $buffer) {
                 return stripos($buffer, 'skipping') || stripos($buffer, 'tagged');
             },
             $this->environment->getContainers()
@@ -75,7 +76,8 @@ class Make
             ['make', 'stop'],
             60,
             function ($type, $buffer) {
-                return false !== stripos($buffer, 'stopping') && false !== stripos($buffer, 'done');
+                return (false !== stripos($buffer, 'stopping') && false !== stripos($buffer, 'done'))
+                    || (false !== stripos($buffer, 'Stopped'));
             },
             $this->environment->getContainers() + 1
         );
@@ -89,21 +91,13 @@ class Make
         return $this->processFactory->runProcessWithProgressBar(
             ['make', 'purge'],
             300,
-            function (/* @noinspection PhpUnusedParameterInspection */ $type, $buffer) {
+            function ($type, $buffer) {
                 return
-                    (
-                        stripos($buffer, 'done')
-                        && (
-                            false !== stripos($buffer, 'stopping')
+                    (false !== stripos($buffer, 'Stopped') || false !== stripos($buffer, 'Removed'))
+                    || (stripos($buffer, 'done') && (
+                        false !== stripos($buffer, 'stopping')
                             || false !== stripos($buffer, 'removing')
-                        )
-                    )
-                    || (
-                        false !== stripos($buffer, 'removing')
-                        && (
-                            false !== stripos($buffer, 'network') || false !== stripos($buffer, 'volume')
-                        )
-                    );
+                    ));
             },
             $this->environment->getContainers() * 2 + $this->environment->getVolumes() + 2
         );
@@ -125,7 +119,7 @@ class Make
         } else {
             $process = $this->mutagen->createSession();
             if (!$process->getProcess()->isSuccessful()) {
-                throw new ProcessException('Mutagen session could not be created');
+                throw new ProcessException('Mutagen session could not be created: ' . $process->getProcess()->getErrorOutput());
             }
         }
 

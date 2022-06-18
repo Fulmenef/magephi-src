@@ -19,8 +19,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class InstallCommand extends AbstractEnvironmentCommand
 {
-    public const DOCKER_LOCAL_ENV = 'docker/local/.env';
-
     protected string $command = 'install';
 
     public function __construct(

@@ -582,8 +582,8 @@ class Emakina implements EnvironmentInterface
                 }
 
                 if ('' !== $conf && $match[2] !== $conf) {
-                    $pattern = "/({$match[1]}=)(\\w*)/i";
-                    $content = preg_replace($pattern, "$1{$conf}", $this->getLocalEnvData());
+                    $pattern = "/({$match[1]})=(\\w*)/i";
+                    $content = preg_replace($pattern, "$1={$conf}", $this->getLocalEnvData());
                     if (!\is_string($content)) {
                         throw new EnvironmentException('Error while configuring environment.');
                     }

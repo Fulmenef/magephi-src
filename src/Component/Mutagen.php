@@ -21,6 +21,8 @@ class Mutagen
     }
 
     /**
+     * @param EnvironmentInterface $environment
+     *
      * @return Mutagen
      */
     public function setEnvironment(EnvironmentInterface $environment): self
