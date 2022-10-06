@@ -100,9 +100,9 @@ class Database
     /**
      * Update URLs in the database with the configured server name.
      *
-     * @throws EnvironmentException
-     *
      * @return Process
+     *
+     * @throws EnvironmentException
      */
     public function updateUrls(string $database)
     {
