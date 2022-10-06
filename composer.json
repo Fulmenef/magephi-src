@@ -10,21 +10,21 @@
         }
     ],
     "require": {
-        "php": ">=8.0.2",
+        "php": ">=8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
         "ext-posix": "*",
         "composer/semver": "^3.3",
         "nette/utils": "^3.2",
-        "symfony/console": "^6.0",
-        "symfony/dotenv": "^6.0",
+        "symfony/console": "^6.1",
+        "symfony/dotenv": "^6.1",
         "symfony/flex": "^2.1",
-        "symfony/framework-bundle": "^6.0",
-        "symfony/http-client": "^6.0",
-        "symfony/process": "^6.0",
+        "symfony/framework-bundle": "^6.1",
+        "symfony/http-client": "^6.1",
+        "symfony/process": "^6.1",
         "symfony/runtime": "6.*",
-        "symfony/yaml": "^6.0",
+        "symfony/yaml": "^6.1",
         "thecodingmachine/safe": "^2.1"
     },
     "require-dev": {
@@ -48,7 +48,7 @@
         },
         "optimize-autoloader": true,
         "platform": {
-            "php": "8.0.2"
+            "php": "8.1.10"
         }
     },
     "autoload": {
