@@ -39,9 +39,9 @@ class Make
             $_ENV['SHELL_VERBOSITY'] >= 1 ? 360 : 60,
             function ($type, $buffer) {
                 return (
-                        (false !== stripos($buffer, 'Creating')
-                            && false !== stripos($buffer, 'done'))
-                        || false !== stripos($buffer, 'Created'))
+                    (false !== stripos($buffer, 'Creating')
+                        && false !== stripos($buffer, 'done'))
+                    || false !== stripos($buffer, 'Created'))
                     || (
                         (false !== stripos($buffer, 'Starting') && false !== stripos($buffer, 'done'))
                         || false !== stripos($buffer, 'Started')

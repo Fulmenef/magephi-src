@@ -23,10 +23,10 @@ class DockerHub
     /**
      * Retrieves the tags associated to the given image.
      *
+     * @return string[]
+     *
      * @throws DockerHubException
      * @throws TransportExceptionInterface
-     *
-     * @return string[]
      */
     public function getImageTags(string $image): array
     {
@@ -47,9 +47,9 @@ class DockerHub
     /**
      * Analyzes the Docker Hub API response by checking the status code and by decoding the JSON content.
      *
-     * @throws DockerHubException
-     *
      * @return array<array<string>|int|string>
+     *
+     * @throws DockerHubException
      */
     private function parseResponse(ResponseInterface $response): array
     {
