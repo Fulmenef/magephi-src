@@ -22,7 +22,7 @@ class InstallCommand extends AbstractMagentoCommand
             ->setHelp('This command allows you to install a basic Magento 2 project in the current directory.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $environment = $this->manager->getEnvironment();
 
@@ -72,8 +72,10 @@ class InstallCommand extends AbstractMagentoCommand
             $environment->getServerName(true),
             'mysql',
             $environment->getDatabase(),
-            $environment->getEnvData('mysql_user'),
-            $environment->getEnvData('mysql_password'),
+            $mysqlUser = !empty($mysqlUser = $environment->getEnvData('mysql_user')) ? $mysqlUser : 'root',
+            $mysqlUser === 'root' ?
+                $environment->getEnvData('mysql_root_password') :
+                $environment->getEnvData('mysql_password'),
             // @phpstan-ignore-next-line
             $this->interactive->ask('What must be the backend frontname ?', 'admin'),
             // @phpstan-ignore-next-line
@@ -191,7 +193,7 @@ class InstallCommand extends AbstractMagentoCommand
         $this->interactive->newLine(2);
 
         if (!$install->getProcess()->isSuccessful()) {
-            $this->interactive->error('An error occurred during installation');
+            $this->interactive->error('An error occurred during installation, use verbose mode to have more information');
             $error = explode(PHP_EOL, $install->getProcess()->getErrorOutput());
 
             // Clean error to have a smaller one

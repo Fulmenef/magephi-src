@@ -40,11 +40,13 @@ class Emakina implements EnvironmentInterface
 
     private string $redisImage;
 
+    private string $localEnvDirectory = 'docker/local';
+
     private string $localEnv = 'docker/local/.env';
 
     private string $localEnvContent;
 
-    private string $distEnv = 'docker/local/.env.dist';
+    private string $distEnv = 'vendor/emakinafr/docker-magento2/.env.dist';
 
     private string $nginxConf = 'docker/local/nginx.conf';
 
@@ -151,12 +153,17 @@ class Emakina implements EnvironmentInterface
     /**
      * Return the local .env content if defined.
      *
+     * @param bool $forceReload
+     *
      * @throws FileNotFoundException
      * @throws EnvironmentException
      */
-    public function getLocalEnvData(): string
+    public function getLocalEnvData($forceReload = false): string
     {
-        if (!isset($this->localEnvContent) && $this->filesystem->exists($this->localEnv)) {
+        if ($forceReload || !isset($this->localEnvContent)) {
+            if (!$this->filesystem->exists($this->localEnv)) {
+                return '';
+            }
             $content = file_get_contents($this->localEnv);
             if (!\is_string($content)) {
                 throw new FileNotFoundException($this->localEnv . ' empty.');
@@ -164,7 +171,7 @@ class Emakina implements EnvironmentInterface
             $this->localEnvContent = $content;
         }
 
-        return $this->localEnvContent ?? '';
+        return $this->localEnvContent;
     }
 
     /**
@@ -419,7 +426,7 @@ class Emakina implements EnvironmentInterface
      */
     private function getNginxConf(): string
     {
-        if (!\is_string($this->nginxConf)) {
+        if (!$this->filesystem->exists($this->nginxConf)) {
             throw new EnvironmentException('nginx.conf does not exist. Ensure emakinafr/docker-magento2 is present in dependencies.');
         }
 
@@ -458,7 +465,7 @@ class Emakina implements EnvironmentInterface
     {
         $this->output->section('Configuring docker environment');
 
-        if (!$this->filesystem->exists($this->distEnv)) {
+        if (!$this->filesystem->exists($this->localEnvDirectory)) {
             $this->output->section('Creating docker local directory');
             $this->processFactory->runProcess(['composer', 'exec', 'docker-local-install']);
         }
@@ -490,7 +497,7 @@ class Emakina implements EnvironmentInterface
         }
         $this->filesystem->copy($this->distEnv, $this->localEnv, true);
 
-        $this->localEnvContent = $this->getLocalEnvData();
+        $this->localEnvContent = $this->getLocalEnvData(true);
 
         $this->phpImage = $this->selectImage('php', 'DOCKER_PHP_IMAGE');
         $this->mysqlImage = $this->selectImage('magento2-mysql', 'DOCKER_MYSQL_IMAGE');
@@ -617,7 +624,9 @@ class Emakina implements EnvironmentInterface
             )) {
                 $newHost = sprintf('# Added by %s\n', Application::APPLICATION_NAME);
                 $newHost .= sprintf('127.0.0.1   %s\n', $serverName);
-                $this->processFactory->runInteractiveProcess(['echo', "\"{$newHost}\"", '|', 'sudo', 'tee', '-a', '/etc/hosts', '>', '/dev/null'], 60);
+                $this->processFactory->runInteractiveProcess(['echo', "\"{$newHost}\"", '|', 'sudo', 'tee', '-a',
+                    '/etc/hosts', '>', '/dev/null',
+                ], 60);
                 $this->output->text('Server added in your host file.');
             }
         }

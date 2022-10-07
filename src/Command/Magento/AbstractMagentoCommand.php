@@ -15,6 +15,8 @@ abstract class AbstractMagentoCommand extends AbstractCommand
 
     protected function configure(): void
     {
-        $this->setName('magento:' . $this->command);
+        $command = 'magento:' . $this->command;
+        $this->setName($command)
+            ->setAliases([$command]);
     }
 }

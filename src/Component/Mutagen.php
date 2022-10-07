@@ -140,23 +140,17 @@ class Mutagen
             300
         );
         $progressBar = new ProgressBar($this->output, 100);
-        $reStatus = '/Status: (.*)$/i';
-        $reProgress = '/Staging files on beta: (\d+)%/i';
+        $reProgress = '/(\d+)%/i';
         $process->start();
         $progressBar->start();
         $process->getProcess()->waitUntil(
-            function (string $type, string $buffer) use ($reStatus, $reProgress, $progressBar) {
-                preg_match($reStatus, $buffer, $statusMatch);
-                if (isset($statusMatch[1])) {
-                    preg_match($reProgress, $statusMatch[1], $progressMatch);
-                    if (!empty($progressMatch)) {
-                        $progressBar->setProgress((int) $progressMatch[1]);
-                    }
-
-                    return 'Watching for changes' === rtrim($statusMatch[1]);
+            function (string $type, string $buffer) use ($reProgress, $progressBar) {
+                preg_match($reProgress, $buffer, $progressMatch);
+                if (!empty($progressMatch)) {
+                    $progressBar->setProgress((int) $progressMatch[1]);
                 }
 
-                return false;
+                return 'Watching for changes' === ltrim(rtrim($buffer));
             }
         );
         $progressBar->finish();
