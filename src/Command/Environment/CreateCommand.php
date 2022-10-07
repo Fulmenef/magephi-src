@@ -12,7 +12,6 @@ use Magephi\Component\DockerCompose;
 use Magephi\Component\Json;
 use Magephi\Component\ProcessFactory;
 use Magephi\Entity\Environment\Manager;
-use Magephi\Entity\System;
 use Magephi\Exception\ComposerException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
@@ -29,7 +28,6 @@ class CreateCommand extends AbstractEnvironmentCommand
         DockerCompose $dockerCompose,
         Manager $manager,
         private LoggerInterface $logger,
-        private System $system,
         private Json $json
     ) {
         parent::__construct($processFactory, $dockerCompose, $manager);
@@ -248,12 +246,24 @@ class CreateCommand extends AbstractEnvironmentCommand
         $package['devDependencies'] = $devDependencies;
         $this->json->putContent($package, 'package.json');
 
-        if ($this->system->isInstalled('yarn')) {
-            $this->processFactory->runInteractiveProcess(['yarn', 'install'], 180);
-            $this->interactive->comment('Yarn packages installed');
-        } else {
-            $this->interactive->note('Yarn is not installed locally, the packages have not been installed.');
-        }
+        $this->processFactory->runInteractiveProcess(
+            [
+                'docker',
+                'run',
+                '--rm',
+                '--interactive',
+                '--tty',
+                '--volume',
+                '$PWD:/app',
+                '--platform=linux/amd64',
+                'node',
+                'yarn',
+                'install',
+                '--cwd /app',
+            ]
+        );
+
+        $this->interactive->comment('Yarn packages installed');
     }
 
     /**

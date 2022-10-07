@@ -15,7 +15,6 @@ class System
             'check'     => 'mutagen',
             'comment'   => '<fg=yellow>https://mutagen.io/</>',
         ],
-        'Yarn'              => ['mandatory' => false, 'check' => 'yarn', 'comment' => null],
         'Magento Cloud CLI' => [
             'mandatory' => false,
             'check'     => 'magento-cloud',
