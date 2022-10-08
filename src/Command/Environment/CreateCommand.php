@@ -60,7 +60,7 @@ class CreateCommand extends AbstractEnvironmentCommand
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!($currentDir = getcwd()) || !($scan = scandir($currentDir))) {
             throw new DirectoryNotFoundException('Your current directory is not readable', self::FAILURE);
