@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Magephi\Command\Environment;
 
 use Composer\Semver\Comparator;
-use ErrorException;
-use Exception;
-use InvalidArgumentException;
 use Magephi\Component\DockerCompose;
 use Magephi\Component\Json;
 use Magephi\Component\ProcessFactory;
@@ -68,7 +65,7 @@ class CreateCommand extends AbstractEnvironmentCommand
 
         try {
             $this->initProjectDirectory($currentDir, $scan);
-        } catch (ErrorException $e) {
+        } catch (\ErrorException $e) {
             $this->interactive->error($e->getMessage());
 
             return self::FAILURE;
@@ -114,7 +111,7 @@ class CreateCommand extends AbstractEnvironmentCommand
 
         try {
             $this->initPackageDev();
-        } catch (ComposerException|Exception $e) {
+        } catch (ComposerException|\Exception $e) {
             $this->interactive->error($e->getMessage());
 
             return self::FAILURE;
@@ -135,7 +132,7 @@ class CreateCommand extends AbstractEnvironmentCommand
      *
      * @param string[] $scan
      *
-     * @throws ErrorException
+     * @throws \ErrorException
      */
     protected function initProjectDirectory(string $currentDir, array $scan): void
     {
@@ -143,14 +140,14 @@ class CreateCommand extends AbstractEnvironmentCommand
             $projectName = $this->interactive->ask('Enter your project name', 'magento2');
 
             if (!\is_string($projectName)) {
-                throw new InvalidArgumentException(sprintf('Project name should be a string, %s given', \gettype($projectName)));
+                throw new \InvalidArgumentException(sprintf('Project name should be a string, %s given', \gettype($projectName)));
             }
 
             try {
                 mkdir($currentDir . '/' . $projectName);
                 chdir($projectName);
-            } catch (ErrorException $e) {
-                throw new ErrorException('A directory with that name already exist, try again with another name or try somewhere else.');
+            } catch (\ErrorException $e) {
+                throw new \ErrorException('A directory with that name already exist, try again with another name or try somewhere else.');
             }
         }
     }

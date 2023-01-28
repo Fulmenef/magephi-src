@@ -87,7 +87,7 @@ jobs:
           mutagen daemon start
           sudo ln -s "$PWD/bin/console" "/usr/local/bin/magephi"
         env:
-          MUTAGEN_VERSION: v0.15.4
+          MUTAGEN_VERSION: v0.16.3
 
       - name: Cache Magephi dependencies
         id: cache-magephi

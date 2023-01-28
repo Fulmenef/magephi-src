@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Component;
 
-use JsonException;
 use Magephi\Exception\DockerHubException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
@@ -61,7 +60,7 @@ class DockerHub
             if (!\is_array($parsedContent)) {
                 $parsedContent = [$parsedContent];
             }
-        } catch (ExceptionInterface|JsonException $exception) {
+        } catch (ExceptionInterface|\JsonException $exception) {
             throw new DockerHubException(sprintf("Unable to parse the Docker Hub API response.\n%s", $exception->getMessage()));
         }
 

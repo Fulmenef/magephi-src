@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Entity\Environment;
 
-use InvalidArgumentException;
 use Magephi\Application;
 use Magephi\Component\DockerHub;
 use Magephi\Component\Mutagen;
@@ -508,7 +507,7 @@ class Emakina implements EnvironmentInterface
                 $this->output->ask('Type the image to use for Redis', $this->getVariableValue('DOCKER_REDIS_IMAGE'));
 
             if (!\is_string($redis)) {
-                throw new InvalidArgumentException(sprintf('The type should be a string, %s given', \gettype($redis)));
+                throw new \InvalidArgumentException(sprintf('The type should be a string, %s given', \gettype($redis)));
             }
 
             $this->redisImage = $redis;
@@ -550,7 +549,7 @@ class Emakina implements EnvironmentInterface
         }
 
         if (!\is_string($image)) {
-            throw new InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($image)));
+            throw new \InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($image)));
         }
 
         $this->setVariableValue($variable, $image);
@@ -585,7 +584,7 @@ class Emakina implements EnvironmentInterface
                 $conf = $this->output->ask($match[1], $match[2] ?? null);
 
                 if (!\is_string($conf)) {
-                    throw new InvalidArgumentException(sprintf($match[1] . ' should be a string, %s given', \gettype($conf)));
+                    throw new \InvalidArgumentException(sprintf($match[1] . ' should be a string, %s given', \gettype($conf)));
                 }
 
                 if ('' !== $conf && $match[2] !== $conf) {
@@ -648,7 +647,7 @@ class Emakina implements EnvironmentInterface
             );
 
             if (!\is_string($serverName)) {
-                throw new InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($serverName)));
+                throw new \InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($serverName)));
             }
 
             $pattern = '/(server_name )(\\S+)/i';

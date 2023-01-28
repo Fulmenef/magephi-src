@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Command\Environment;
 
-use InvalidArgumentException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -37,7 +36,7 @@ class RestoreCommand extends AbstractEnvironmentCommand
         $path = $input->getArgument(BackupCommand::ARGUMENT_FILE);
 
         if (!is_file($path)) {
-            throw new InvalidArgumentException($path . ' is not a file.');
+            throw new \InvalidArgumentException($path . ' is not a file.');
         }
 
         $compressed = false;

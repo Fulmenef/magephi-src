@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\EventListener;
 
-use ArgumentCountError;
 use Magephi\Command\AbstractCommand;
 use Magephi\Entity\Environment\Manager;
 use Magephi\Entity\System;
@@ -87,12 +86,12 @@ class CommandListener
      * @param array<string>                                                         $command
      * @param array<string, array{mandatory: bool, status: bool, comment: ?string}> $system
      *
-     * @throws ArgumentCountError
+     * @throws \ArgumentCountError
      */
     private function checkUndefinedPrerequisites(array $command, array $system, string $type): void
     {
         if (!empty($diff = array_diff($command, array_keys($system)))) {
-            throw new ArgumentCountError(
+            throw new \ArgumentCountError(
                 sprintf('Undefined %s prerequisite(s) specified: %s', $type, implode(',', $diff))
             );
         }

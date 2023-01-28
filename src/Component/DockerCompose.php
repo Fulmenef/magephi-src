@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Component;
 
-use Error;
 use Magephi\Command\Docker\PhpCommand;
 use Magephi\Entity\Environment\EnvironmentInterface;
 use Magephi\Exception\EnvironmentException;
@@ -70,7 +69,7 @@ class DockerCompose
                     $this->environment->getDockerRequiredVariables(),
                     true
                 );
-        } catch (Error $e) {
+        } catch (\Error $e) {
             $this->logger->error($e->getMessage());
 
             throw new EnvironmentException('Environment is not defined, install the environment first.');
