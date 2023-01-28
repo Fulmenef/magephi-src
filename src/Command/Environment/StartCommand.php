@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Command\Environment;
 
-use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -40,7 +39,7 @@ class StartCommand extends AbstractEnvironmentCommand
 
         try {
             $this->manager->start();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->interactive->newLine(2);
             $this->interactive->error(
                 [

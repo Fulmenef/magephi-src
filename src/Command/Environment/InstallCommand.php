@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Command\Environment;
 
-use Exception;
 use Magephi\Component\DockerCompose;
 use Magephi\Component\ProcessFactory;
 use Magephi\Entity\Environment\Manager;
@@ -55,7 +54,7 @@ class InstallCommand extends AbstractEnvironmentCommand
             $this->manager->install();
 
             $imported = $this->importDatabase();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             if ('' !== $e->getMessage()) {
                 $this->interactive->error($e->getMessage());
             }

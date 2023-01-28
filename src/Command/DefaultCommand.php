@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Command;
 
-use Exception;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
@@ -29,7 +28,7 @@ class DefaultCommand extends AbstractCommand
     /**
      * {@inheritdoc}
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

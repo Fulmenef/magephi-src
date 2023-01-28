@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Magephi\Entity\Environment;
 
-use Exception;
-use InvalidArgumentException;
 use Magephi\Component\DockerCompose;
 use Magephi\Component\Yaml;
 use Magephi\Exception\EnvironmentException;
@@ -151,7 +149,7 @@ class Manager
         }
 
         if ('' === $database) {
-            throw new InvalidArgumentException('The database is not defined. Ensure a database is defined in the configuration or provide one in the command.');
+            throw new \InvalidArgumentException('The database is not defined. Ensure a database is defined in the configuration or provide one in the command.');
         }
 
         try {
@@ -173,7 +171,7 @@ class Manager
             );
 
             $this->updateDatabase($database);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->output->error($e->getMessage());
 
             return false;
@@ -207,7 +205,7 @@ class Manager
         if ($this->output->confirm('Do you want to update the urls ?', true)) {
             try {
                 $process = $this->database->updateUrls($database);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $this->output->error($e->getMessage());
 
                 return;
