@@ -102,7 +102,7 @@ class InstallCommand extends AbstractEnvironmentCommand
             $this->check(
                 $component . ' is installed.',
                 $component . ' is missing.',
-                function () use ($info) {
+                static function () use ($info) {
                     return $info['status'];
                 },
                 $info['mandatory']
@@ -114,7 +114,7 @@ class InstallCommand extends AbstractEnvironmentCommand
             $this->check(
                 $component . ' is running.',
                 $component . ' must be started.',
-                function () use ($info) {
+                static function () use ($info) {
                     return $info['status'];
                 },
                 $info['mandatory']

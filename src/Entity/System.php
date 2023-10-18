@@ -71,7 +71,7 @@ class System
         foreach ($allPrerequisites as $type => $prerequisites) {
             $filtered = array_filter(
                 $prerequisites,
-                function ($array) {
+                static function ($array) {
                     return $array['mandatory'];
                 }
             );
@@ -105,7 +105,7 @@ class System
         foreach ($allPrerequisites as $type => $prerequisites) {
             $filtered = array_filter(
                 $prerequisites,
-                function ($array) {
+                static function ($array) {
                     return !$array['mandatory'];
                 }
             );

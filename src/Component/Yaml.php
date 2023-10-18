@@ -7,9 +7,7 @@ use Symfony\Component\Yaml\Yaml as YamlService;
 
 class Yaml
 {
-    public function __construct(private Filesystem $filesystem)
-    {
-    }
+    public function __construct(private Filesystem $filesystem) {}
 
     /**
      * Return content of yaml file in array format.

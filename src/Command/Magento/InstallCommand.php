@@ -90,7 +90,7 @@ class InstallCommand extends AbstractMagentoCommand
             $this->interactive->ask(
                 'What is the admin password ?',
                 '4dM7NPwd',
-                function ($answer) {
+                static function ($answer) {
                     if (empty($answer)) {
                         throw new \RuntimeException(
                             'The password cannot be empty.'
@@ -167,7 +167,7 @@ class InstallCommand extends AbstractMagentoCommand
                 $install->start();
                 $progressBar->start();
                 $install->getProcess()->waitUntil(
-                    function (string $type, string $buffer) use ($regex, $progressBar) {
+                    static function (string $type, string $buffer) use ($regex, $progressBar) {
                         preg_match($regex, $buffer, $match);
                         if (isset($match[1])) {
                             if ($progressBar->getMaxSteps() !== $match[2]) {

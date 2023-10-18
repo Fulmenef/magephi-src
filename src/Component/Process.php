@@ -131,7 +131,7 @@ class Process
 
             try {
                 $this->process->wait(
-                    function ($type, $buffer) use ($progressFunction, $progressBar) {
+                    static function ($type, $buffer) use ($progressFunction, $progressBar) {
                         if ($steps = $progressFunction($type, $buffer)) {
                             $progressBar->advance(\is_int($steps) ? $steps : 1);
                         }
