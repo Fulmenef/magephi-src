@@ -14,15 +14,6 @@ class StartCommand extends AbstractEnvironmentCommand
 {
     protected string $command = 'start';
 
-    public function getPrerequisites(): array
-    {
-        $prerequisites = parent::getPrerequisites();
-        $prerequisites['binary'] = array_merge($prerequisites['binary'], ['Mutagen']);
-        $prerequisites['service'] = array_merge($prerequisites['service'], ['Mutagen']);
-
-        return $prerequisites;
-    }
-
     protected function configure(): void
     {
         parent::configure();

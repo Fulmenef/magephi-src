@@ -10,11 +10,6 @@ class System
     private array $binaries = [
         'Docker'            => ['mandatory' => true, 'check' => 'docker', 'comment' => null],
         'Docker-Compose'    => ['mandatory' => true, 'check' => 'docker-compose', 'comment' => null],
-        'Mutagen'           => [
-            'mandatory' => true,
-            'check'     => 'mutagen',
-            'comment'   => '<fg=yellow>https://mutagen.io/</>',
-        ],
         'Magento Cloud CLI' => [
             'mandatory' => false,
             'check'     => 'magento-cloud',
@@ -30,7 +25,6 @@ class System
     /** @var array<string, array{mandatory: bool, check: string, comment: ?string}> */
     private array $services = [
         'Docker'  => ['mandatory' => true, 'check' => 'docker info > /dev/null 2>&1', 'comment' => null],
-        'Mutagen' => ['mandatory' => true, 'check' => 'pgrep -f "mutagen"', 'comment' => null],
     ];
 
     /**

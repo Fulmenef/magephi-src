@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Magephi\Command\Environment;
 
 use Magephi\Component\DockerCompose;
-use Magephi\Component\Mutagen;
 use Magephi\Component\ProcessFactory;
 use Magephi\Entity\Environment\Manager;
 use Symfony\Component\Console\Helper\Table;
@@ -23,7 +22,6 @@ class StatusCommand extends AbstractEnvironmentCommand
         ProcessFactory $processFactory,
         DockerCompose $dockerCompose,
         Manager $manager,
-        private Mutagen $mutagen
     ) {
         parent::__construct($processFactory, $dockerCompose, $manager);
     }
@@ -48,21 +46,6 @@ class StatusCommand extends AbstractEnvironmentCommand
             $table->addRow([$container, $status]);
         }
         $table->render();
-
-        // Mutagen
-        if ($this->mutagen->isExistingSession()) {
-            if ($this->mutagen->isSynced()) {
-                $mutagenStatus = 'Synchronized';
-            } elseif ($this->mutagen->isPaused()) {
-                $mutagenStatus = 'Session paused';
-            } else {
-                $mutagenStatus = 'Synchronization in progress';
-            }
-        } else {
-            $mutagenStatus = 'Session does not exist';
-        }
-
-        $this->interactive->writeln('Mutagen status: <info>' . $mutagenStatus . '</info>');
 
         return self::SUCCESS;
     }
