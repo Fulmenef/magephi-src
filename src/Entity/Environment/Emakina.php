@@ -6,7 +6,6 @@ namespace Magephi\Entity\Environment;
 
 use Magephi\Application;
 use Magephi\Component\DockerHub;
-use Magephi\Component\Mutagen;
 use Magephi\Component\Process;
 use Magephi\Component\ProcessFactory;
 use Magephi\Component\Yaml;
@@ -57,7 +56,6 @@ class Emakina implements EnvironmentInterface
 
     public function __construct(
         private Make $make,
-        private Mutagen $mutagen,
         private Filesystem $filesystem,
         private DockerHub $dockerHub,
         Yaml $yaml,
@@ -314,17 +312,6 @@ class Emakina implements EnvironmentInterface
         if (!$process->getProcess()->isSuccessful() && Process::CODE_TIMEOUT !== $process->getExitCode()) {
             // TODO Encapsulate error ?
             throw new EnvironmentException($process->getProcess()->getErrorOutput());
-        }
-
-        if (Process::CODE_TIMEOUT === $process->getExitCode()) {
-            $this->make->startMutagen();
-            $this->output->newLine();
-            $this->output->text('Containers are up.');
-            $this->output->section('File synchronization');
-            $synced = $this->mutagen->monitorUntilSynced();
-            if (!$synced) {
-                throw new EnvironmentException('Something happened during the sync, check the situation with <fg=yellow>mutagen monitor</>.');
-            }
         }
 
         return true;

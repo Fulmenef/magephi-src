@@ -8,19 +8,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Command to uninstall the environment. It simply remove volumes and destroy containers and the mutagen session.
+ * Command to uninstall the environment. It simply remove volumes and destroy containers.
  */
 class UninstallCommand extends AbstractEnvironmentCommand
 {
     protected string $command = 'uninstall';
-
-    public function getPrerequisites(): array
-    {
-        $prerequisites = parent::getPrerequisites();
-        $prerequisites['binary'] = array_merge($prerequisites['binary'], ['Mutagen']);
-
-        return $prerequisites;
-    }
 
     protected function configure(): void
     {
