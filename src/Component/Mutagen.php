@@ -144,7 +144,7 @@ class Mutagen
         $process->start();
         $progressBar->start();
         $process->getProcess()->waitUntil(
-            function (string $type, string $buffer) use ($reProgress, $progressBar) {
+            static function (string $type, string $buffer) use ($reProgress, $progressBar) {
                 preg_match($reProgress, $buffer, $progressMatch);
                 if (!empty($progressMatch)) {
                     $progressBar->setProgress((int) $progressMatch[1]);

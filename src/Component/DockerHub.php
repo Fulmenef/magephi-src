@@ -15,9 +15,7 @@ class DockerHub
 {
     private const API_ENDPOINT = 'https://hub.docker.com/v2/repositories/ajardin/%s/tags';
 
-    public function __construct(private HttpClientInterface $httpClient)
-    {
-    }
+    public function __construct(private HttpClientInterface $httpClient) {}
 
     /**
      * Retrieves the tags associated to the given image.

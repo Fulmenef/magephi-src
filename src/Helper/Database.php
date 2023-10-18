@@ -21,8 +21,7 @@ class Database
     public function __construct(
         private ProcessFactory $processFactory,
         private System $system
-    ) {
-    }
+    ) {}
 
     /**
      * Import a database dump. Display a progress bar to visually follow the process.

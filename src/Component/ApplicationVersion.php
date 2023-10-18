@@ -10,9 +10,7 @@ class ApplicationVersion
 {
     public const APPLICATION_VERSION = '@package_version@';
 
-    public function __construct(private KernelInterface $kernel)
-    {
-    }
+    public function __construct(private KernelInterface $kernel) {}
 
     /**
      * Checks whether the application has been compiled as a PHAR archive.

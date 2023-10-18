@@ -14,9 +14,7 @@ class DockerCompose
 {
     private EnvironmentInterface $environment;
 
-    public function __construct(private ProcessFactory $processFactory, private LoggerInterface $logger)
-    {
-    }
+    public function __construct(private ProcessFactory $processFactory, private LoggerInterface $logger) {}
 
     /**
      * Open a TTY terminal to the given container.

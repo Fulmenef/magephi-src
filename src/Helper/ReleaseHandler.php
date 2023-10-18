@@ -8,9 +8,7 @@ use Magephi\Kernel;
 
 class ReleaseHandler
 {
-    public function __construct(private Kernel $kernel)
-    {
-    }
+    public function __construct(private Kernel $kernel) {}
 
     /**
      * Remove previous version caches and logs.

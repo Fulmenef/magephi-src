@@ -4,6 +4,4 @@ declare(strict_types=1);
 
 namespace Magephi\Exception;
 
-class ComposerException extends \RuntimeException
-{
-}
+class ComposerException extends \RuntimeException {}

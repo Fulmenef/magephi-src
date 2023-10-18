@@ -13,9 +13,7 @@ use Symfony\Component\Console\Event\ConsoleCommandEvent;
 
 class CommandListener
 {
-    public function __construct(private System $system, private Manager $manager)
-    {
-    }
+    public function __construct(private System $system, private Manager $manager) {}
 
     /**
      * Check if the prerequisites for the Magephi command are filled.
