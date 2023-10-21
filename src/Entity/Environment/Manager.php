@@ -205,6 +205,8 @@ class Manager
         if ($this->output->confirm('Do you want to update the urls ?', true)) {
             try {
                 $process = $this->database->updateUrls($database);
+
+                $this->output->success('The urls were updated.');
             } catch (\Exception $e) {
                 $this->output->error($e->getMessage());
 
