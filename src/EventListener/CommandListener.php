@@ -48,7 +48,7 @@ class CommandListener
                 foreach ($commandPrerequisites['binary'] as $prerequisite) {
                     if (!$systemPrerequisites[$prerequisite]['status']) {
                         throw new EnvironmentException(
-                            sprintf('%s is necessary to use this command, please install it.', $prerequisite)
+                            \sprintf('%s is necessary to use this command, please install it.', $prerequisite)
                         );
                     }
                 }
@@ -64,7 +64,7 @@ class CommandListener
                 foreach ($commandPrerequisites['service'] as $prerequisite) {
                     if (!$systemPrerequisites[$prerequisite]['status']) {
                         throw new EnvironmentException(
-                            sprintf(
+                            \sprintf(
                                 '%s is not running, the environment must be started to use this command.',
                                 $prerequisite
                             )
@@ -90,7 +90,7 @@ class CommandListener
     {
         if (!empty($diff = array_diff($command, array_keys($system)))) {
             throw new \ArgumentCountError(
-                sprintf('Undefined %s prerequisite(s) specified: %s', $type, implode(',', $diff))
+                \sprintf('Undefined %s prerequisite(s) specified: %s', $type, implode(',', $diff))
             );
         }
     }

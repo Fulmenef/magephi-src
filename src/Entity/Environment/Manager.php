@@ -138,7 +138,7 @@ class Manager
      * Import database from a file on the project. The file must be at the root or in a direct subdirectory.
      * TODO: Import database from Magento Cloud CLI if available.
      */
-    public function importDatabase(string $filename, string $database = null): bool
+    public function importDatabase(string $filename, ?string $database = null): bool
     {
         if (!$this->dockerCompose->isContainerUp('mysql')) {
             throw new EnvironmentException('Mysql container is not started');
@@ -162,7 +162,7 @@ class Manager
             $seconds = round($process->getDuration());
 
             $this->output->success(
-                sprintf(
+                \sprintf(
                     'The dump has been imported in %s in %d minutes and %d seconds ',
                     $database,
                     $seconds / 60,

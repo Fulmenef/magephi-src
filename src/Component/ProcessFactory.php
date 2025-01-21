@@ -76,7 +76,7 @@ class ProcessFactory
         array $command,
         float $timeout,
         callable $progressFunction,
-        int $maxSteps = null,
+        ?int $maxSteps = null,
         bool $shell = false
     ): Process {
         if ($_ENV['SHELL_VERBOSITY'] >= 1) {
@@ -99,7 +99,7 @@ class ProcessFactory
     public function runProcessWithOutput(
         array $command,
         ?float $timeout = null,
-        array $env = null,
+        ?array $env = null,
         bool $shell = false
     ): Process {
         return $this->runOutputProcess($command, $timeout, $env, $shell);
@@ -111,7 +111,7 @@ class ProcessFactory
      * @param string[]      $command
      * @param null|string[] $env     Environment variables
      */
-    public function runInteractiveProcess(array $command, ?float $timeout = null, array $env = null): Process
+    public function runInteractiveProcess(array $command, ?float $timeout = null, ?array $env = null): Process
     {
         return $this->runOutputProcess($command, $timeout, $env, true, true);
     }
@@ -125,7 +125,7 @@ class ProcessFactory
     private function runOutputProcess(
         array $command,
         ?float $timeout = null,
-        array $env = null,
+        ?array $env = null,
         bool $shell = false,
         bool $tty = false
     ): Process {

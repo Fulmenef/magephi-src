@@ -70,7 +70,7 @@ abstract class AbstractCommand extends Command
      */
     public function getPrerequisites(): array
     {
-        return ['binary' => ['Docker', 'Docker-Compose'], 'service' => ['Docker']];
+        return ['binary' => ['Docker', 'Docker Compose'], 'service' => ['Docker']];
     }
 
     protected function configure(): void

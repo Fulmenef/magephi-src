@@ -24,7 +24,7 @@ class Process
 
     private ?float $endTime = null;
 
-    private ?int $exitCode;
+    private int $exitCode;
 
     /**
      * ShellProcess constructor.
@@ -112,7 +112,7 @@ class Process
      * @param null|callable $callback
      * @param string[]      $env
      */
-    public function start(callable $callback = null, array $env = []): void
+    public function start(?callable $callback = null, array $env = []): void
     {
         $this->startTime = microtime(true);
 
@@ -158,7 +158,7 @@ class Process
      *
      * @return int Exit code
      */
-    public function wait(callable $callback = null): int
+    public function wait(?callable $callback = null): int
     {
         return $this->process->wait($callback);
     }
@@ -187,7 +187,7 @@ class Process
      *
      * @return int
      */
-    public function run(callable $callback = null, array $env = []): int
+    public function run(?callable $callback = null, array $env = []): int
     {
         $this->startTime = microtime(true);
 

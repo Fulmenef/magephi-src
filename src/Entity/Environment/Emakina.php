@@ -190,8 +190,12 @@ class Emakina implements EnvironmentInterface
         if ($this->hasMagentoEnv()) {
             /** @var array<array> $env */
             $env = require_once $this->magentoEnv;
+            // @phpstan-ignore-next-line
             if (isset($env['db']['connection']['default']['dbname'])) {
-                return $env['db']['connection']['default']['dbname'];
+                $dbName = $env['db']['connection']['default']['dbname'];
+                if (\is_string($dbName)) {
+                    return $dbName;
+                }
             }
         }
 
@@ -494,7 +498,7 @@ class Emakina implements EnvironmentInterface
                 $this->output->ask('Type the image to use for Redis', $this->getVariableValue('DOCKER_REDIS_IMAGE'));
 
             if (!\is_string($redis)) {
-                throw new \InvalidArgumentException(sprintf('The type should be a string, %s given', \gettype($redis)));
+                throw new \InvalidArgumentException(\sprintf('The type should be a string, %s given', \gettype($redis)));
             }
 
             $this->redisImage = $redis;
@@ -536,7 +540,7 @@ class Emakina implements EnvironmentInterface
         }
 
         if (!\is_string($image)) {
-            throw new \InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($image)));
+            throw new \InvalidArgumentException(\sprintf('Image should be a string, %s given', \gettype($image)));
         }
 
         $this->setVariableValue($variable, $image);
@@ -571,7 +575,7 @@ class Emakina implements EnvironmentInterface
                 $conf = $this->output->ask($match[1], $match[2] ?? null);
 
                 if (!\is_string($conf)) {
-                    throw new \InvalidArgumentException(sprintf($match[1] . ' should be a string, %s given', \gettype($conf)));
+                    throw new \InvalidArgumentException(\sprintf($match[1] . ' should be a string, %s given', \gettype($conf)));
                 }
 
                 if ('' !== $conf && $match[2] !== $conf) {
@@ -608,8 +612,8 @@ class Emakina implements EnvironmentInterface
             if ($this->output->confirm(
                 'It seems like this host is not in your hosts file yet, do you want to add it (sudo necessary) ?'
             )) {
-                $newHost = sprintf('# Added by %s\n', Application::APPLICATION_NAME);
-                $newHost .= sprintf('127.0.0.1   %s\n', $serverName);
+                $newHost = \sprintf('# Added by %s\n', Application::APPLICATION_NAME);
+                $newHost .= \sprintf('127.0.0.1   %s\n', $serverName);
                 $this->processFactory->runInteractiveProcess(['echo', "\"{$newHost}\"", '|', 'sudo', 'tee', '-a',
                     '/etc/hosts', '>', '/dev/null',
                 ], 60);
@@ -634,10 +638,10 @@ class Emakina implements EnvironmentInterface
             );
 
             if (!\is_string($serverName)) {
-                throw new \InvalidArgumentException(sprintf('Image should be a string, %s given', \gettype($serverName)));
+                throw new \InvalidArgumentException(\sprintf('Image should be a string, %s given', \gettype($serverName)));
             }
 
-            $pattern = '/(server_name )(\\S+)/i';
+            $pattern = '/(server_name )(\S+)/i';
             $content = preg_replace($pattern, "$1{$serverName};", $this->getNginxConf());
             if (!\is_string($content)) {
                 throw new EnvironmentException('Error while preparing the nginx conf.');

@@ -1,6 +1,3 @@
-includes:
-	- vendor/phpstan/phpstan-symfony/extension.neon
-
 parameters:
 	paths:
 		- src
@@ -9,11 +6,17 @@ parameters:
 		- php
 
 	symfony:
-		container_xml_path: var/cache/dev/Magephi_KernelDevDebugContainer.xml
+		containerXmlPath: var/cache/dev/Magephi_KernelDevDebugContainer.xml
+		consoleApplicationLoader: tests/console-application.php
+
+	scanDirectories:
+		- var/cache/dev/Symfony/Config
+	scanFiles:
+		- vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php
+
+	treatPhpDocTypesAsCertain: false
 
 	ignoreErrors:
-		# False positive from the php documentation
-		- "#Offset 'extension' does not exist on array#"
 		-
 			message: '#PHPDoc tag @var for variable \$env has no value type specified in iterable type array#'
 			path: src/Entity/Environment/Emakina.php

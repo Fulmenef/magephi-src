@@ -26,7 +26,7 @@ class InstallCommand extends AbstractMagentoCommand
     {
         $environment = $this->manager->getEnvironment();
 
-        $command = sprintf(
+        $command = \sprintf(
             "bin/magento setup:install
             --base-url=%s
             --db-host=%s
@@ -90,7 +90,7 @@ class InstallCommand extends AbstractMagentoCommand
             $this->interactive->ask(
                 'What is the admin password ?',
                 '4dM7NPwd',
-                static function ($answer) {
+                static function (?string $answer) {
                     if (empty($answer)) {
                         throw new \RuntimeException(
                             'The password cannot be empty.'
@@ -106,7 +106,7 @@ class InstallCommand extends AbstractMagentoCommand
                             'The password must include uppercase characters.'
                         );
                     }
-                    if (\strlen(preg_replace('![^0-9]+!', '', $answer)) < 2) {
+                    if (\strlen(preg_replace('![^0-9]+!', '', $answer) ?? '') < 2) {
                         throw new \RuntimeException(
                             'The password must include numerical characters.'
                         );
@@ -170,7 +170,7 @@ class InstallCommand extends AbstractMagentoCommand
                     static function (string $type, string $buffer) use ($regex, $progressBar) {
                         preg_match($regex, $buffer, $match);
                         if (isset($match[1])) {
-                            if ($progressBar->getMaxSteps() !== $match[2]) {
+                            if (isset($match[2]) && $progressBar->getMaxSteps() !== (int) $match[2]) {
                                 $progressBar->setMaxSteps((int) $match[2]);
                             }
                             $progressBar->setProgress((int) $match[1]);
@@ -207,7 +207,7 @@ class InstallCommand extends AbstractMagentoCommand
         }
 
         $this->interactive->success(
-            sprintf(
+            \sprintf(
                 'Magento installed, you can access to your website with the url %s',
                 $environment->getServerName(true)
             )

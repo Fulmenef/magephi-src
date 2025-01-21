@@ -27,7 +27,7 @@ class ExecCommand extends AbstractCommand
         $command = $input->getArgument('content');
 
         if (!\is_string($command)) {
-            throw new \InvalidArgumentException(sprintf('The type should be a string, %s given', \gettype($command)));
+            throw new \InvalidArgumentException(\sprintf('The type should be a string, %s given', \gettype($command)));
         }
 
         $container = $input->getArgument('container');
