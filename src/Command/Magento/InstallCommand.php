@@ -8,10 +8,13 @@ use Magephi\Exception\EnvironmentException;
 use Magephi\Exception\ProcessException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class InstallCommand extends AbstractMagentoCommand
 {
+    private const OPTION_CLEANUP_DATABASE = 'cleanup-database';
+
     protected string $command = 'install';
 
     protected function configure(): void
@@ -19,7 +22,8 @@ class InstallCommand extends AbstractMagentoCommand
         parent::configure();
         $this
             ->setDescription('Install the Magento2 project in the current directory.')
-            ->setHelp('This command allows you to install a basic Magento 2 project in the current directory.');
+            ->setHelp('This command allows you to install a basic Magento 2 project in the current directory.')
+            ->addOption(self::OPTION_CLEANUP_DATABASE, null, InputOption::VALUE_NONE, 'Add the flag to clean the database before installing');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -151,10 +155,14 @@ class InstallCommand extends AbstractMagentoCommand
             5
         );
 
+        if ($input->getOption(self::OPTION_CLEANUP_DATABASE)) {
+            $command .= ' --cleanup-database';
+        }
+
         try {
             $this->dockerCompose->executeContainerCommand('php', 'mkdir pub/static');
-            $this->dockerCompose->executeContainerCommand('php', 'composer dumpautoload');
             $this->dockerCompose->executeContainerCommand('php', 'rm -rf generated');
+            $this->dockerCompose->executeContainerCommand('php', 'composer dumpautoload');
             $this->interactive->section('Installation');
 
             if ($_ENV['SHELL_VERBOSITY'] >= 1) {

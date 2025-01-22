@@ -341,7 +341,9 @@ EOD;
      */
     protected function initGitkeep(): void
     {
-        mkdir('app/code');
+        if (!is_dir('app/code')) {
+            mkdir('app/code');
+        }
         fopen('app/code/.gitkeep', 'w');
         fopen('app/design/.gitkeep', 'w');
         fopen('app/etc/.gitkeep', 'w');
