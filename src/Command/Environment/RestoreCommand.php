@@ -41,7 +41,7 @@ class RestoreCommand extends AbstractEnvironmentCommand
 
         $compressed = false;
         $timeout = self::DEFAULT_TIMEOUT;
-        $extension = pathinfo($path)['extension'];
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
         if ('.' . $extension === BackupCommand::COMPRESSED_EXTENSION) {
             $compressed = true;
             $timeout = self::DEFAULT_TIMEOUT * 2;
@@ -66,7 +66,7 @@ class RestoreCommand extends AbstractEnvironmentCommand
             }
             $command = [
                 'docker run --rm',
-                '--volumes-from $(docker-compose ps -q mysql)',
+                '--volumes-from $(docker compose ps -q mysql)',
                 '--volume $(pwd):/project',
                 'busybox sh -c " \
                 tar ' . $tarParameters . ' /project/' . $filename . ' &&

@@ -27,14 +27,15 @@ class DockerHub
      */
     public function getImageTags(string $image): array
     {
-        $response = $this->httpClient->request(Request::METHOD_GET, sprintf(self::API_ENDPOINT, $image));
+        $response = $this->httpClient->request(Request::METHOD_GET, \sprintf(self::API_ENDPOINT, $image));
         $parsedResponse = $this->parseResponse($response);
 
-        if (\is_array($parsedResponse) && \array_key_exists('results', $parsedResponse)
+        if (\array_key_exists('results', $parsedResponse)
             && \is_array($parsedResponse['results'])) {
             $tags = array_column($parsedResponse['results'], 'name');
             rsort($tags);
 
+            // @phpstan-ignore-next-line
             return $tags;
         }
 
@@ -44,7 +45,7 @@ class DockerHub
     /**
      * Analyzes the Docker Hub API response by checking the status code and by decoding the JSON content.
      *
-     * @return array<array<string>|int|string>
+     * @return array<mixed>
      *
      * @throws DockerHubException
      */
@@ -59,7 +60,7 @@ class DockerHub
                 $parsedContent = [$parsedContent];
             }
         } catch (ExceptionInterface|\JsonException $exception) {
-            throw new DockerHubException(sprintf("Unable to parse the Docker Hub API response.\n%s", $exception->getMessage()));
+            throw new DockerHubException(\sprintf("Unable to parse the Docker Hub API response.\n%s", $exception->getMessage()));
         }
 
         return $parsedContent;

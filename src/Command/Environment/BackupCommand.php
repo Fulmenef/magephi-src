@@ -69,7 +69,7 @@ class BackupCommand extends AbstractEnvironmentCommand
 
             $command = [
                 'docker run --rm',
-                '--volumes-from $(docker-compose ps -q mysql)',
+                '--volumes-from $(docker compose ps -q mysql)',
                 '--volume $(pwd):/backup',
                 'busybox sh -c "tar cvf /backup/' . self::MYSQL_BACKUP_FILE
                 . ' /var/lib/mysql"',

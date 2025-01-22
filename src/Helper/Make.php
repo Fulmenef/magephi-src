@@ -32,7 +32,7 @@ class Make
         return $this->processFactory->runProcessWithProgressBar(
             ['make', 'start'],
             $_ENV['SHELL_VERBOSITY'] >= 1 ? 360 : 60,
-            static function ($type, $buffer) {
+            static function ($type, string $buffer) {
                 return (
                     (false !== stripos($buffer, 'Creating')
                         && false !== stripos($buffer, 'done'))
@@ -55,7 +55,7 @@ class Make
         return $this->processFactory->runProcessWithProgressBar(
             ['make', 'build'],
             600,
-            static function ($type, $buffer) {
+            static function ($type, string $buffer) {
                 return stripos($buffer, 'skipping') || stripos($buffer, 'tagged');
             },
             $this->environment->getContainers()
@@ -70,7 +70,7 @@ class Make
         return $this->processFactory->runProcessWithProgressBar(
             ['make', 'stop'],
             60,
-            static function ($type, $buffer) {
+            static function ($type, string $buffer) {
                 return (false !== stripos($buffer, 'stopping') && false !== stripos($buffer, 'done'))
                     || (false !== stripos($buffer, 'Stopped'));
             },
@@ -86,7 +86,7 @@ class Make
         return $this->processFactory->runProcessWithProgressBar(
             ['make', 'purge'],
             300,
-            static function ($type, $buffer) {
+            static function ($type, string $buffer) {
                 return
                     (false !== stripos($buffer, 'Stopped') || false !== stripos($buffer, 'Removed'))
                     || (stripos($buffer, 'done') && (

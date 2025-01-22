@@ -9,7 +9,7 @@ class System
     /** @var array<string, array{mandatory: bool, check: string, comment: ?string}> */
     private array $binaries = [
         'Docker'            => ['mandatory' => true, 'check' => 'docker', 'comment' => null],
-        'Docker-Compose'    => ['mandatory' => true, 'check' => 'docker-compose', 'comment' => null],
+        'Docker Compose'    => ['mandatory' => true, 'check' => 'docker compose', 'comment' => null],
         'Magento Cloud CLI' => [
             'mandatory' => false,
             'check'     => 'magento-cloud',

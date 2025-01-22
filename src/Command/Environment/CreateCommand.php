@@ -140,7 +140,7 @@ class CreateCommand extends AbstractEnvironmentCommand
             $projectName = $this->interactive->ask('Enter your project name', 'magento2');
 
             if (!\is_string($projectName)) {
-                throw new \InvalidArgumentException(sprintf('Project name should be a string, %s given', \gettype($projectName)));
+                throw new \InvalidArgumentException(\sprintf('Project name should be a string, %s given', \gettype($projectName)));
             }
 
             try {
@@ -162,6 +162,7 @@ class CreateCommand extends AbstractEnvironmentCommand
         $composer = $this->json->getContent('composer.json');
 
         if (null === $version) {
+            /** @var string $version */
             $version = $composer['version'];
         }
 
@@ -169,7 +170,11 @@ class CreateCommand extends AbstractEnvironmentCommand
             'emakinafr/docker-magento2' => '^3.0',
         ];
 
-        if (Comparator::greaterThanOrEqualTo($version, '2.4.4')) {
+        if (Comparator::greaterThanOrEqualTo($version, '2.4.7')) {
+            $phpVersion = '8.3.0';
+        } elseif (Comparator::greaterThanOrEqualTo($version, '2.4.6')) {
+            $phpVersion = '8.2.0';
+        } elseif (Comparator::greaterThanOrEqualTo($version, '2.4.4')) {
             $phpVersion = '8.1.0';
         } else {
             $phpVersion = '7.4.0';
@@ -179,6 +184,7 @@ class CreateCommand extends AbstractEnvironmentCommand
 
         $composer['require-dev'] = $requireDev;
 
+        /** @var array<mixed> $config */
         $config = $composer['config'] ?? [];
         $config['platform'] = [
             'php'           => $phpVersion,
@@ -222,6 +228,8 @@ class CreateCommand extends AbstractEnvironmentCommand
     protected function initPackageDev(): void
     {
         $package = $this->json->getContent('package.json');
+
+        /** @var array<string, string> $content */
         $content = $package['devDependencies'];
 
         $requireDev = [

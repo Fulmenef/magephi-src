@@ -28,7 +28,7 @@ class DockerCompose
     public function openTerminal(string $container, array $arguments): void
     {
         if (!$this->isContainerUp($container)) {
-            throw new EnvironmentException(sprintf('The container %s is not started.', $container));
+            throw new EnvironmentException(\sprintf('The container %s is not started.', $container));
         }
 
         if (!\Symfony\Component\Process\Process::isTtySupported()) {
@@ -41,7 +41,7 @@ class DockerCompose
                 $commands[] = "--{$argument}={$value}";
             }
         }
-        $commands = array_merge($commands, ['$('], $this->getBinary(), ["ps --quiet {$container})", 'bash', '--login']);
+        $commands = array_merge($commands, ['$('], self::getBinary(), ["ps --quiet {$container})", 'bash', '--login']);
 
         $this->processFactory->runInteractiveProcess(
             $commands,
@@ -56,7 +56,7 @@ class DockerCompose
     public function isContainerUp(string $container): bool
     {
         $command =
-            'docker ps -q --no-trunc | grep $(' . implode(' ', $this->getBinary()) . " ps -q {$container})";
+            'docker ps -q --no-trunc | grep $(' . implode(' ', self::getBinary()) . " ps -q {$container})";
         $commands = explode(' ', $command);
 
         try {
@@ -87,7 +87,7 @@ class DockerCompose
         bool $createOnly = false
     ): Process {
         if (!$this->isContainerUp($container)) {
-            throw new EnvironmentException(sprintf('The container %s is not started.', $container));
+            throw new EnvironmentException(\sprintf('The container %s is not started.', $container));
         }
 
         $arguments = [];
@@ -97,10 +97,10 @@ class DockerCompose
 
         $finalCommand =
             array_merge(
-                $this->getBinary(),
+                self::getBinary(),
                 ['exec'],
                 $arguments,
-                ['-T', $container, 'sh', '-c', sprintf('"%s"', escapeshellcmd($command))]
+                ['-T', $container, 'sh', '-c', \sprintf('"%s"', escapeshellcmd($command))]
             );
 
         if ($createOnly) {
@@ -123,7 +123,7 @@ class DockerCompose
     }
 
     /**
-     * Execute a docker-compose command like `ps` or `logs`.
+     * Execute a docker compose command like `ps` or `logs`.
      */
     public function executeGlobalCommand(string $command): Process
     {
@@ -143,7 +143,7 @@ class DockerCompose
     public function restartContainer(string $container): bool
     {
         $process = $this->processFactory->runProcess(
-            array_merge($this->getBinary(), ['restart', $container]),
+            array_merge(self::getBinary(), ['restart', $container]),
             60,
             $this->environment->getDockerRequiredVariables()
         );
@@ -159,12 +159,12 @@ class DockerCompose
     public function list(): array
     {
         $process = $this->processFactory->runProcess(
-            array_merge($this->getBinary(), ['ps']),
+            array_merge(self::getBinary(), ['ps', '-a']),
             60,
             $this->environment->getDockerRequiredVariables()
         );
 
-        $regex = '/^(?![ -])(\S+).+(?=running|exited)(\S+)/mi';
+        $regex = '/^(?![ -])(\S+).+(?=up|exited)(\S+)/mi';
 
         $output = $process->getProcess()->getOutput();
 
@@ -189,17 +189,12 @@ class DockerCompose
     }
 
     /**
-     * Return binary depending the docker compose version.
+     * Return binary for docker compose.
      *
      * @return string[]
      */
-    private function getBinary(): array
+    public static function getBinary(): array
     {
-        $process = $this->processFactory->runProcess(['docker-compose', 'version', '--short'], 10);
-        if (1 !== preg_match('/^v2/i', $process->getProcess()->getOutput())) {
-            return ['docker-compose'];
-        }
-
         return ['docker', 'compose'];
     }
 }

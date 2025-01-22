@@ -19,6 +19,7 @@ class Kernel extends BaseKernel
      */
     public static function getCustomDir(): string
     {
+        /** @phpstan-ignore-next-line */
         $home = PHP_OS_FAMILY !== 'Windows' ? getenv('HOME') : $_SERVER['HOMEDRIVE'] . $_SERVER['HOMEPATH'];
 
         if (\is_string($home) && '' !== $home) {

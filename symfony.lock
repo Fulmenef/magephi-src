@@ -2,9 +2,6 @@
     "captainhook/captainhook": {
         "version": "5.10.6"
     },
-    "captainhook/plugin-composer": {
-        "version": "5.3.3"
-    },
     "composer/pcre": {
         "version": "3.0.0"
     },
@@ -201,8 +198,5 @@
     },
     "symfony/yaml": {
         "version": "v6.0.3"
-    },
-    "thecodingmachine/safe": {
-        "version": "v2.1.2"
     }
 }

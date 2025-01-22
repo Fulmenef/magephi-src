@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Magephi\Helper;
 
+use Magephi\Component\DockerCompose;
 use Magephi\Component\Process;
 use Magephi\Component\ProcessFactory;
 use Magephi\Entity\Environment\EnvironmentInterface;
@@ -31,7 +32,7 @@ class Database
     public function import(string $database, string $filename): Process
     {
         if (!file_exists($filename)) {
-            throw new FileException(sprintf('File %s does not exist', $filename));
+            throw new FileException(\sprintf('File %s does not exist', $filename));
         }
 
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
@@ -69,8 +70,8 @@ class Database
         $command = array_merge(
             array_merge($readCommand, [$filename, '|']),
             !empty($command) ? array_merge($command, ['|']) : $command,
+            DockerCompose::getBinary(),
             [
-                'docker-compose',
                 'exec',
                 '-T',
                 '--env',
@@ -112,22 +113,24 @@ class Database
         ) : $this->environment->getEnvData('mysql_password');
 
         return $this->processFactory->runProcess(
-            [
-                'docker-compose',
-                'exec',
-                '-T',
-                '--env',
-                'MYSQL_PWD=' . $password,
-                'mysql',
-                'mysql',
-                '-h',
-                '127.0.0.1',
-                '-u',
-                $username,
-                $database,
-                '-e',
-                '"UPDATE core_config_data SET value=\"' . $serverName . '/\" WHERE path LIKE \"web%base_url\""',
-            ],
+            array_merge(
+                DockerCompose::getBinary(),
+                [
+                    'exec',
+                    '-T',
+                    '--env',
+                    'MYSQL_PWD=' . $password,
+                    'mysql',
+                    'mysql',
+                    '-h',
+                    '127.0.0.1',
+                    '-u',
+                    $username,
+                    $database,
+                    '-e',
+                    '"UPDATE core_config_data SET value=\"' . $serverName . '/\" WHERE path LIKE \"web%base_url\""',
+                ]
+            ),
             30,
             $this->environment->getDockerRequiredVariables(),
             true

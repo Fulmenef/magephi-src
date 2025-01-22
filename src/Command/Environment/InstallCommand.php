@@ -169,7 +169,7 @@ class InstallCommand extends AbstractEnvironmentCommand
                 if (\is_string($file)) {
                     return $this->manager->importDatabase($file);
                 }
-                $this->interactive->error(sprintf('Filename must be a string, %s given', \gettype($file)));
+                $this->interactive->error(\sprintf('Filename must be a string, %s given', \gettype($file)));
             } else {
                 $this->interactive->text('No compatible file found.');
             }
