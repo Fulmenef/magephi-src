@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: vendor
-          key: ${{ runner.os }}-build-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-build-${{ hashFiles('composer.lock') }}-${{ matrix.php-version }}
 
       - name: Install dependencies
         if: steps.cache-magephi.outputs.cache-hit != 'true'
@@ -93,7 +93,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{env.MAGENTO_DIRECTORY}}
-          key: ${{ runner.os }}-build-${{ hashFiles('composer.lock') }}-magento-app
+          key: ${{ runner.os }}-build-${{ hashFiles('composer.lock') }}-${{ matrix.php-version }}-magento-app
 
       - name: Regenerate files after cache restore
         if: steps.cache-magento.outputs.cache-hit == 'true'
