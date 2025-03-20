@@ -2199,16 +2199,16 @@
         },
         {
             "name": "symfony/process",
-            "version": "v7.2.0",
+            "version": "v7.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "d34b22ba9390ec19d2dd966c40aa9e8462f27a7e"
+                "reference": "d8f411ff3c7ddc4ae9166fb388d1190a2df5b5cf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/d34b22ba9390ec19d2dd966c40aa9e8462f27a7e",
-                "reference": "d34b22ba9390ec19d2dd966c40aa9e8462f27a7e",
+                "url": "https://api.github.com/repos/symfony/process/zipball/d8f411ff3c7ddc4ae9166fb388d1190a2df5b5cf",
+                "reference": "d8f411ff3c7ddc4ae9166fb388d1190a2df5b5cf",
                 "shasum": ""
             },
             "require": {
@@ -2240,7 +2240,7 @@
             "description": "Executes commands in sub-processes",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/process/tree/v7.2.0"
+                "source": "https://github.com/symfony/process/tree/v7.2.4"
             },
             "funding": [
                 {
@@ -2256,7 +2256,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-11-06T14:24:19+00:00"
+            "time": "2025-02-05T08:33:46+00:00"
         },
         {
             "name": "symfony/routing",
@@ -2823,16 +2823,16 @@
     "packages-dev": [
         {
             "name": "captainhook/captainhook",
-            "version": "5.24.3",
+            "version": "5.25.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/captainhookphp/captainhook.git",
-                "reference": "00acb745e6132dcffe3e9bd45e1fe27934a134c7"
+                "reference": "e2a35b23daf9ed317b5faca1c667cb048b30cd60"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/captainhookphp/captainhook/zipball/00acb745e6132dcffe3e9bd45e1fe27934a134c7",
-                "reference": "00acb745e6132dcffe3e9bd45e1fe27934a134c7",
+                "url": "https://api.github.com/repos/captainhookphp/captainhook/zipball/e2a35b23daf9ed317b5faca1c667cb048b30cd60",
+                "reference": "e2a35b23daf9ed317b5faca1c667cb048b30cd60",
                 "shasum": ""
             },
             "require": {
@@ -2843,7 +2843,7 @@
                 "php": ">=8.0",
                 "sebastianfeldmann/camino": "^0.9.2",
                 "sebastianfeldmann/cli": "^3.3",
-                "sebastianfeldmann/git": "^3.12",
+                "sebastianfeldmann/git": "^3.13",
                 "symfony/console": "^2.7 || ^3.0 || ^4.0 || ^5.0 || ^6.0 || ^7.0",
                 "symfony/filesystem": "^2.7 || ^3.0 || ^4.0 || ^5.0 || ^6.0 || ^7.0",
                 "symfony/process": "^2.7 || ^3.0 || ^4.0 || ^5.0 || ^6.0 || ^7.0"
@@ -2895,7 +2895,7 @@
             ],
             "support": {
                 "issues": "https://github.com/captainhookphp/captainhook/issues",
-                "source": "https://github.com/captainhookphp/captainhook/tree/5.24.3"
+                "source": "https://github.com/captainhookphp/captainhook/tree/5.25.1"
             },
             "funding": [
                 {
@@ -2903,7 +2903,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-16T11:37:53+00:00"
+            "time": "2025-03-19T16:42:49+00:00"
         },
         {
             "name": "captainhook/hook-installer",
@@ -5183,16 +5183,16 @@
         },
         {
             "name": "sebastianfeldmann/git",
-            "version": "3.12.1",
+            "version": "3.13.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianfeldmann/git.git",
-                "reference": "db9c089a28a00c5348c9bc8789c2597259d83bd8"
+                "reference": "95c5fccbbf5e94ad86c459a73f0c2d2d2e776d98"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianfeldmann/git/zipball/db9c089a28a00c5348c9bc8789c2597259d83bd8",
-                "reference": "db9c089a28a00c5348c9bc8789c2597259d83bd8",
+                "url": "https://api.github.com/repos/sebastianfeldmann/git/zipball/95c5fccbbf5e94ad86c459a73f0c2d2d2e776d98",
+                "reference": "95c5fccbbf5e94ad86c459a73f0c2d2d2e776d98",
                 "shasum": ""
             },
             "require": {
@@ -5233,7 +5233,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianfeldmann/git/issues",
-                "source": "https://github.com/sebastianfeldmann/git/tree/3.12.1"
+                "source": "https://github.com/sebastianfeldmann/git/tree/3.13.2"
             },
             "funding": [
                 {
@@ -5241,7 +5241,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-20T11:17:18+00:00"
+            "time": "2025-02-11T19:34:51+00:00"
         },
         {
             "name": "symfony/options-resolver",
@@ -5463,9 +5463,9 @@
         "ext-json": "*",
         "ext-posix": "*"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "platform-overrides": {
         "php": "8.3.16"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }
